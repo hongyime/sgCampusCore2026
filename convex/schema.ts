@@ -64,4 +64,32 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_created_at", ["created_at"])
     .index("by_location", ["location_entity"]),
+
+  // Egress queue (tech_design §5). One row per ticket awaiting broadcast.
+  _telegram_egress_queue: defineTable({
+    ticket_id: v.id("tickets"),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("processing"),
+      v.literal("sent"),
+      v.literal("dead_letter"),
+    ),
+    // Mirrored from the ticket so the compound index can cluster tier-1 ahead
+    // of tier-2 without a join. Server-owned, same as the ticket field.
+    priority_tier: v.union(v.literal(1), v.literal(2)),
+    claimed_at: v.union(v.number(), v.null()),
+    retry_count: v.number(),
+    created_at: v.number(),
+    egress_cleared_at: v.union(v.number(), v.null()),
+  })
+    // THE load-bearing index (tech_design §5): ordering by
+    // (status, priority_tier, created_at) means a range scan of `pending`
+    // rows yields all priority_tier:1 rows before any priority_tier:2 row,
+    // in B-tree order, independent of arrival time. Worker A and Worker B
+    // both claim from the head of this index for their tier.
+    .index("by_status_priority_created", [
+      "status",
+      "priority_tier",
+      "created_at",
+    ]),
 });
