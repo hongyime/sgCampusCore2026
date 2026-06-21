@@ -104,4 +104,33 @@ export default defineSchema({
     // Set when an authenticated admin acknowledges the dashboard takeover.
     acknowledged_at: v.optional(v.union(v.number(), v.null())),
   }).index("by_ticket", ["ticket_id"]),
+
+  // Telegram deep-link pairing tokens (tech_design §1). 3-minute TTL,
+  // single-use, redeemed by one atomic serializable mutation. Second
+  // redemption / expired / unknown token all FAIL CLOSED.
+  pairings: defineTable({
+    token: v.string(), // opaque random deep-link token
+    clerk_user_id: v.string(),
+    email: v.string(), // PII — never logged
+    created_at: v.number(),
+    expires_at: v.number(), // created_at + 180_000
+    redeemed_at: v.union(v.number(), v.null()),
+    telegram_user_id: v.union(v.string(), v.null()),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("redeemed"),
+      v.literal("expired"),
+    ),
+  }).index("by_token", ["token"]),
+
+  // Paired users. `last_verified_at` gates bot activity behind the 30-day SSO
+  // re-verification requirement (tech_design §1, enforced in TASK-11).
+  users: defineTable({
+    clerk_user_id: v.string(),
+    email: v.string(), // PII — never logged
+    telegram_user_id: v.union(v.string(), v.null()),
+    last_verified_at: v.number(),
+  })
+    .index("by_clerk_user", ["clerk_user_id"])
+    .index("by_telegram_user", ["telegram_user_id"]),
 });
