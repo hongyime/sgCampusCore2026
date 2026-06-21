@@ -7,7 +7,7 @@
 
 ## Scaffold (tech_design §1 Infrastructure)
 - [x] TASK-1: Next.js (App Router) + Convex project skeleton — `package.json`, `tsconfig.json`, `next.config.mjs`, `convex/` dir, base `app/` shell.
-- [ ] TASK-2: Lint/format config — ESLint flat config + Prettier, `npm run lint`/`format` scripts.
+- [x] TASK-2: Lint/format config — ESLint flat config + Prettier, `npm run lint`/`format` scripts.
 - [ ] TASK-3: `.env.example` — every required env var name + one-line "where to get it" comment, no real values.
 - [ ] TASK-4: Convex + Clerk provider wiring in `app/layout.tsx` / `app/providers.tsx` (keys read from env; stubs tolerated).
 
