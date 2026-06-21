@@ -20,7 +20,7 @@
 - [x] TASK-8: Clerk middleware + `@smu.edu.sg` gate in app code (dashboard-level restriction deferred to human — see WAITING_ON_HUMAN.md).
 - [x] TASK-9: `convex/auth.config.ts` — JWKS RS256 signature verify + `exp`/`nbf` check against Clerk JWKS endpoint (via Convex's Clerk provider); never "decrypt". Do not log full JWT payloads.
 - [x] TASK-10: `convex/pairing.ts` — deep-link pairing token: 3-minute TTL, single atomic redeem mutation keyed on token ID, idempotent / fail-closed on second redemption. (Also added `users` table that the 30-day gate uses.)
-- [ ] TASK-11: 30-day re-verification gate — `last_verified_at` blocks further bot activity until SSO re-auth.
+- [x] TASK-11: 30-day re-verification gate — `last_verified_at` blocks further bot activity until SSO re-auth. (`convex/lib/verification.ts`; wired into webhook in TASK-12/13.)
 
 ## Telegram Ingestion (tech_design §1, §3)
 - [ ] TASK-12: `convex/http.ts` Telegram webhook skeleton (stubbed token) — parses update, uses the **synchronous webhook-reply slot** for `answerCallbackQuery` (one method per update).
