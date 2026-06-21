@@ -1,0 +1,1 @@
+# sgCampusCore2026
