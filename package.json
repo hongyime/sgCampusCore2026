@@ -1,0 +1,34 @@
+{
+  "name": "campuscore",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Decentralized campus issue-reporting network for SMU (Telegram + Convex + Next.js).",
+  "scripts": {
+    "dev": "next dev",
+    "dev:convex": "convex dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^6.0.0",
+    "convex": "^1.17.0",
+    "next": "^15.0.0",
+    "onnxruntime-web": "^1.20.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "resend": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.0.0",
+    "prettier": "^3.3.0",
+    "typescript": "^5.6.0"
+  }
+}
