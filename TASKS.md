@@ -14,7 +14,7 @@
 ## Data Model (tech_design §2)
 - [x] TASK-5: `convex/schema.ts` — `tickets` table (category nullable, priority_tier 1|2, triage_status, initial_tap_at, timestamps, location_entity, headline).
 - [x] TASK-6: `convex/schema.ts` — `_telegram_egress_queue` table + **compound index `(status, priority_tier, created_at)`**.
-- [ ] TASK-7: `convex/schema.ts` — `_critical_escalations` table (ticket_id, reason, created_at).
+- [x] TASK-7: `convex/schema.ts` — `_critical_escalations` table (ticket_id, reason, created_at).
 
 ## Auth (tech_design §1 Authentication)
 - [ ] TASK-8: Clerk middleware + `@smu.edu.sg` gate in app code (dashboard-level restriction deferred to human — see WAITING_ON_HUMAN.md).

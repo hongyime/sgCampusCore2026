@@ -92,4 +92,16 @@ export default defineSchema({
       "priority_tier",
       "created_at",
     ]),
+
+  // Out-of-band escalation records (tech_design §5 dead-letter exception, §7
+  // SLA breach). Written when a tier-1 ticket either dead-letters in the queue
+  // or fails to reach status "sent" within the 60s SLA. Drives the dashboard
+  // takeover + Resend email. Never silently dropped.
+  _critical_escalations: defineTable({
+    ticket_id: v.id("tickets"),
+    reason: v.union(v.literal("dead_letter"), v.literal("sla_breach")),
+    created_at: v.number(),
+    // Set when an authenticated admin acknowledges the dashboard takeover.
+    acknowledged_at: v.optional(v.union(v.number(), v.null())),
+  }).index("by_ticket", ["ticket_id"]),
 });
