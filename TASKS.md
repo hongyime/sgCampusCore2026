@@ -18,7 +18,7 @@
 
 ## Auth (tech_design §1 Authentication)
 - [x] TASK-8: Clerk middleware + `@smu.edu.sg` gate in app code (dashboard-level restriction deferred to human — see WAITING_ON_HUMAN.md).
-- [ ] TASK-9: `convex/auth.ts` — JWKS RS256 signature verify + `exp`/`nbf` check against Clerk JWKS endpoint; never "decrypt". Do not log full JWT payloads.
+- [x] TASK-9: `convex/auth.config.ts` — JWKS RS256 signature verify + `exp`/`nbf` check against Clerk JWKS endpoint (via Convex's Clerk provider); never "decrypt". Do not log full JWT payloads.
 - [ ] TASK-10: `convex/pairing.ts` — deep-link pairing token: 3-minute TTL, single atomic redeem mutation keyed on token ID, idempotent / fail-closed on second redemption.
 - [ ] TASK-11: 30-day re-verification gate — `last_verified_at` blocks further bot activity until SSO re-auth.
 
