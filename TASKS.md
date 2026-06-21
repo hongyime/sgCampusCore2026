@@ -12,7 +12,7 @@
 - [x] TASK-4: Convex + Clerk provider wiring in `app/layout.tsx` / `app/providers.tsx` (keys read from env; stubs tolerated).
 
 ## Data Model (tech_design §2)
-- [ ] TASK-5: `convex/schema.ts` — `tickets` table (category nullable, priority_tier 1|2, triage_status, initial_tap_at, timestamps, location_entity, headline).
+- [x] TASK-5: `convex/schema.ts` — `tickets` table (category nullable, priority_tier 1|2, triage_status, initial_tap_at, timestamps, location_entity, headline).
 - [ ] TASK-6: `convex/schema.ts` — `_telegram_egress_queue` table + **compound index `(status, priority_tier, created_at)`**.
 - [ ] TASK-7: `convex/schema.ts` — `_critical_escalations` table (ticket_id, reason, created_at).
 
