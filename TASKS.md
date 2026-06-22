@@ -61,5 +61,19 @@
 ## Legal Escalation Stub (tech_design §8)
 - [ ] TASK-36: Legal-escalation stub endpoint — writes structured payload (locked Clerk user ID, timestamp, hash-match record) to **console.log only**. Never a real address.
 
+## Multi-School Template (added Session 1 — scope change beyond original docs)
+> Decision (user, Session 1): CampusCore is a per-school deployable TEMPLATE.
+> Tenancy = ONE DEPLOYMENT PER SCHOOL (no school_id in the data model; a school
+> is selected by `CAMPUSCORE_SCHOOL_CODE`). Admin auth = staff-domain email AND
+> membership in `CAMPUSCORE_ADMIN_ALLOWLIST`. This supersedes the docs' hardcoded
+> single-tenant `@smu.edu.sg` assumption — flagged in STATUS.md.
+- [x] TASK-38: `config/schoolRegistry.ts` — researched SG institution registry
+      (universities, polytechnics, ITE, MOE schools) with student + staff domains.
+- [ ] TASK-39: `config/school.ts` — active-school resolution from env; school-member
+      and admin email predicates (admin = staff domain AND allowlist). Stub-tolerant.
+- [ ] TASK-40: Rewire `middleware.ts` + `convex/pairing.ts` off hardcoded
+      `@smu.edu.sg` onto the config module; add admin-allowlist gate for admin routes.
+      Add `CAMPUSCORE_SCHOOL_CODE` + `CAMPUSCORE_ADMIN_ALLOWLIST` to `.env.example`.
+
 ## Validation (tech_design §9)
 - [ ] TASK-37: Run §9 pre-demo validation checklist; record results + open items in `STATUS.md`.
