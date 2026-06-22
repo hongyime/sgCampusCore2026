@@ -43,12 +43,12 @@
   mutation (`convex/moderation.ts`) and `image_storage_id` to schema. Threshold
   is `P >= 0.50` (removed) / `< 0.50` (broadcast + stored). No `pending_review`.
 
-### Next task — Egress Queue (TASKS 22–27) (start here)
-This is the core of the priority broadcast system (tech_design §5).
-- Build `convex/queue.ts` with `claim_batch` (atomically read top-N `pending` to `processing`) and `finalize_batch`.
-- Build the Reaper: sweeps `processing` > 10m30s to `pending`. At `retry_count >= 3`, moves to `dead_letter`.
-- Build Worker A (Express, batch=1, tier-1) and Worker B (Standard, batch=25, tier-2).
-- **CRITICAL**: Burst-test 50+ tickets before commit (AGENTS.md).
+- **Egress Queue (22–27)**: `convex/queue.ts` implementing `claim_batch`, `finalize_batch`, and the Reaper logic (10m30s ceiling, retry>=3 dead letter). `convex/workers.ts` with `workerA` (Express, batch=1) and `workerB` (Standard, batch=25, Promise.allSettled with AbortSignals). Message format prefixes ticket ID. Built `seed50Tickets` for simulated burst testing.
+
+### Next task — SLA Channels (TASKS 29–30) (start here)
+This implements the emergency escalation channels (tech_design §7).
+- Task 29: Dashboard takeover UI (persistent red banner + audio alarm via WebSocket).
+- Task 30: `convex/lib/resend.ts` — Resend escalation email stub.
 
 ### Then, in TASKS.md order
 - SLA channels (29 dashboard takeover UI, 30 Resend email stub).

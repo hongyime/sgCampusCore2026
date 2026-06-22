@@ -39,12 +39,12 @@
 - [x] TASK-21: Telegram Mini App upload bridge — force image upload through the Cloudflare-proxied zone (not Telegram `getFile`).
 
 ## Egress Queue (tech_design §5, §6)
-- [ ] TASK-22: `convex/queue.ts` — `claim_batch` mutation: atomically read top-N `pending` (compound-index order) → `processing` in one serializable transaction.
-- [ ] TASK-23: `convex/queue.ts` — `finalize_batch` mutation: set `sent` + `egress_cleared_at`, or bump `retry_count`.
-- [ ] TASK-24: Reaper — sweep rows `processing` > (Convex Action ceiling 10min + 30s buffer) back to `pending`; `retry_count >= 3` → `dead_letter`; tier-1 dead_letter also writes `_critical_escalations`.
-- [ ] TASK-25: Worker A — Emergency Express action: claims/dispatches tier-1 **one at a time** (batch=1, no shared batch).
-- [ ] TASK-26: Worker B — Standard Batch action: claims up to 25 tier-2; each Telegram `fetch` has its own 5s `AbortSignal`; `Promise.allSettled`.
-- [ ] TASK-27: Broadcast format — every message prefixed with immutable `ticket_id` (e.g. `[🚨 URGENT - TICKET #8A9B2]`).
+- [x] TASK-22: `convex/queue.ts` — `claim_batch` mutation: atomically read top-N `pending` (compound-index order) → `processing` in one serializable transaction.
+- [x] TASK-23: `convex/queue.ts` — `finalize_batch` mutation: set `sent` + `egress_cleared_at`, or bump `retry_count`.
+- [x] TASK-24: Reaper — sweep rows `processing` > (Convex Action ceiling 10min + 30s buffer) back to `pending`; `retry_count >= 3` → `dead_letter`; tier-1 dead_letter also writes `_critical_escalations`.
+- [x] TASK-25: Worker A — Emergency Express action: claims/dispatches tier-1 **one at a time** (batch=1, no shared batch).
+- [x] TASK-26: Worker B — Standard Batch action: claims up to 25 tier-2; each Telegram `fetch` has its own 5s `AbortSignal`; `Promise.allSettled`.
+- [x] TASK-27: Broadcast format — every message prefixed with immutable `ticket_id` (e.g. `[🚨 URGENT - TICKET #8A9B2]`).
 
 ## Emergency SLA (tech_design §7)
 - [x] TASK-28: `convex/sla.ts` — `checkEmergencySla` scheduled fn: at 60s, if egress `status !== "sent"`, writes `_critical_escalations` reason `sla_breach` (idempotent). Per-ticket `runAfter`, never cron. (Built early — ingest.ts depends on it. Escalation CHANNELS are TASK-29 dashboard + TASK-30 email.)
