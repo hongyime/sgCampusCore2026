@@ -1,5 +1,7 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
+import { internal } from "./_generated/api";
+import { runTriage } from "./lib/llmTriage";
 
 // Telegram webhook ingestion (tech_design.md §1, §3).
 //
@@ -82,11 +84,45 @@ const telegramWebhook = httpAction(async (ctx, request) => {
   }
 
   // --- Inbound report message -------------------------------------------
-  // TASK-13 wires this branch to the ingestion mutation (verify 30-day gate,
-  // create ticket, run lexicon, enqueue egress, fire SLA timer for tier-1).
+  // Ingestion: run LLM triage (action context has fetch), then hand off to the
+  // createTicket mutation which enforces the 30-day gate, resolves the
+  // server-owned priority_tier from the lexicon, enqueues egress, and schedules
+  // the 60s SLA timer for tier-1.
   if (update.message) {
-    // Skeleton only: receipt acknowledged, ingestion deferred to TASK-13.
-    return ack();
+    const msg = update.message;
+    const fromId = msg.from?.id;
+    const text = (msg.text ?? msg.caption ?? "").trim();
+
+    // Ignore messages we can't attribute or that carry no report text.
+    if (!fromId || !text) {
+      return ack();
+    }
+
+    const triage = await runTriage(text);
+    const result = await ctx.runMutation(internal.ingest.createTicket, {
+      telegram_user_id: String(fromId),
+      text,
+      headline: triage.headline,
+      location_entity: triage.location_entity,
+      llm_severity_score: triage.severity_score,
+    });
+
+    if (!result.ok) {
+      // 30-day gate failed (not paired or stale) — prompt re-auth. No ticket.
+      return methodReply("sendMessage", {
+        chat_id: msg.chat.id,
+        text:
+          "Please verify your school account to file reports. " +
+          "Sign in and re-pair the bot to continue.",
+      });
+    }
+
+    // Confirm with the immutable ticket id (delivery-semantics §6: the id lets
+    // a reader distinguish a retry from a genuine second incident).
+    return methodReply("sendMessage", {
+      chat_id: msg.chat.id,
+      text: `Report received — TICKET #${result.ticketId}. Tap a category to classify it.`,
+    });
   }
 
   // Unknown/ignored update type — acknowledge so Telegram stops retrying.

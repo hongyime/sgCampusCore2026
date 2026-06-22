@@ -24,7 +24,7 @@
 
 ## Telegram Ingestion (tech_design §1, §3)
 - [x] TASK-12: `convex/http.ts` Telegram webhook skeleton (stubbed token) — parses update, uses the **synchronous webhook-reply slot** for `answerCallbackQuery` (one method per update).
-- [ ] TASK-13: Ingestion mutation — create `tickets` row, enqueue egress, fire `runAfter(60000, check_emergency_sla)` for tier-1.
+- [x] TASK-13: Ingestion (`convex/ingest.ts` + webhook message branch) — verify 30-day gate, resolve server-owned tier, create `tickets` row, enqueue egress, fire `runAfter(60000, check_emergency_sla)` for tier-1.
 
 ## Triage Logic (tech_design §3)
 - [x] TASK-14: `convex/lib/ahoCorasick.ts` — Aho-Corasick automaton + fixed hazard lexicon ingestion (lexicon list is an approval-checkpoint item — kept in `convex/lib/lexicon.ts`).
@@ -47,7 +47,7 @@
 - [ ] TASK-27: Broadcast format — every message prefixed with immutable `ticket_id` (e.g. `[🚨 URGENT - TICKET #8A9B2]`).
 
 ## Emergency SLA (tech_design §7)
-- [ ] TASK-28: `convex/sla.ts` — `check_emergency_sla` scheduled fn: at 60s, if `status !== "sent"`, fire escalation (writes `_critical_escalations` reason `sla_breach`). Per-ticket `runAfter`, never cron.
+- [x] TASK-28: `convex/sla.ts` — `checkEmergencySla` scheduled fn: at 60s, if egress `status !== "sent"`, writes `_critical_escalations` reason `sla_breach` (idempotent). Per-ticket `runAfter`, never cron. (Built early — ingest.ts depends on it. Escalation CHANNELS are TASK-29 dashboard + TASK-30 email.)
 - [ ] TASK-29: Dashboard takeover UI — un-dismissible red banner + looping HTML5 audio alarm until an authenticated admin acknowledges (WebSocket/Convex subscription).
 - [ ] TASK-30: `convex/lib/resend.ts` — Resend escalation email stub (structured high-priority payload; stubbed key).
 

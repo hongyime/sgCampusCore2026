@@ -91,7 +91,9 @@ export default defineSchema({
       "status",
       "priority_tier",
       "created_at",
-    ]),
+    ])
+    // Lookup a ticket's egress row directly (SLA check, finalize).
+    .index("by_ticket", ["ticket_id"]),
 
   // Out-of-band escalation records (tech_design §5 dead-letter exception, §7
   // SLA breach). Written when a tier-1 ticket either dead-letters in the queue
