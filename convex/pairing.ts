@@ -1,5 +1,6 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { isSchoolMemberEmail } from "../config/school";
 
 // Telegram deep-link pairing (tech_design.md §1).
 //
@@ -21,9 +22,11 @@ export const createPairingToken = mutation({
       throw new Error("Not authenticated");
     }
     const email = (identity.email ?? "").toLowerCase();
-    if (!email.endsWith("@smu.edu.sg")) {
-      // Defense-in-depth; the authoritative gate is the Clerk dashboard.
-      throw new Error("SMU institutional account required");
+    if (!isSchoolMemberEmail(email)) {
+      // Defense-in-depth; the authoritative gate is the per-instance Clerk
+      // dashboard restriction. Accepts this deployment's student or staff
+      // domains (CAMPUSCORE_SCHOOL_CODE → config/schoolRegistry).
+      throw new Error("Institutional account for this school required");
     }
 
     const token = crypto.randomUUID().replace(/-/g, "");

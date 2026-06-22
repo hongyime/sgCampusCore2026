@@ -13,8 +13,13 @@
 ## Credentials & Keys (stubbed via .env.example)
 - [ ] **Telegram** — bot token (via @BotFather) + webhook URL registration
       (`setWebhook` to the deployed Convex HTTP endpoint). Code path stubbed.
-- [ ] **Clerk** — instance publishable + secret keys, AND the `@smu.edu.sg`
-      domain restriction (configured in the Clerk dashboard, not just in code).
+- [ ] **Clerk** — instance publishable + secret keys, AND the per-school domain
+      restriction (configured in the Clerk dashboard, not just in code). Each
+      deployment restricts to ITS school's domains (see config/schoolRegistry.ts).
+- [ ] **Per-school template config** — set `CAMPUSCORE_SCHOOL_CODE` and
+      `CAMPUSCORE_ADMIN_ALLOWLIST` in BOTH the Next.js env and the Convex env.
+      Confirm the school's exact STUDENT subdomain (several are marked `// verify`
+      in config/schoolRegistry.ts) before a production deployment.
 - [ ] **Convex** — deployment URL + deploy key (`npx convex dev` / project keys).
 - [ ] **Resend** — API key (free tier, 3,000/mo) for emergency escalation email.
 - [ ] **Groq / LLM** — API key for structured triage call (or local Ollama URL).
