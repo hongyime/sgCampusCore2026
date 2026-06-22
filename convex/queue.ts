@@ -1,4 +1,5 @@
 import { internalMutation, internalQuery } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 
 // TASK-22: claim_batch
@@ -105,6 +106,16 @@ export const reapStaleProcessing = internalMutation({
               reason: "dead_letter",
               created_at: now,
             });
+            const ticket = await ctx.db.get(row.ticket_id);
+            if (ticket) {
+              await ctx.scheduler.runAfter(0, internal.lib.resend.sendEscalationEmail, {
+                ticketId: row.ticket_id,
+                reason: "Queue Dead Letter (Retry count exceeded)",
+                headline: ticket.headline,
+                location_entity: ticket.location_entity,
+                description: ticket.description,
+              });
+            }
           }
         } else {
           await ctx.db.patch(row._id, {

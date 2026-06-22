@@ -48,8 +48,8 @@
 
 ## Emergency SLA (tech_design §7)
 - [x] TASK-28: `convex/sla.ts` — `checkEmergencySla` scheduled fn: at 60s, if egress `status !== "sent"`, writes `_critical_escalations` reason `sla_breach` (idempotent). Per-ticket `runAfter`, never cron. (Built early — ingest.ts depends on it. Escalation CHANNELS are TASK-29 dashboard + TASK-30 email.)
-- [ ] TASK-29: Dashboard takeover UI — un-dismissible red banner + looping HTML5 audio alarm until an authenticated admin acknowledges (WebSocket/Convex subscription).
-- [ ] TASK-30: `convex/lib/resend.ts` — Resend escalation email stub (structured high-priority payload; stubbed key).
+- [x] TASK-29: Dashboard takeover UI — un-dismissible red banner + looping HTML5 audio alarm until an authenticated admin acknowledges (WebSocket/Convex subscription).
+- [x] TASK-30: `convex/lib/resend.ts` — Resend escalation email stub (structured high-priority payload; stubbed key).
 
 ## Dashboard (tech_design §6)
 - [ ] TASK-31: Public dashboard ticket list — real-time Convex subscription, ticket_id-prefixed, open/resolved.

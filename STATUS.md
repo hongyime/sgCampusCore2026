@@ -45,10 +45,15 @@
 
 - **Egress Queue (22–27)**: `convex/queue.ts` implementing `claim_batch`, `finalize_batch`, and the Reaper logic (10m30s ceiling, retry>=3 dead letter). `convex/workers.ts` with `workerA` (Express, batch=1) and `workerB` (Standard, batch=25, Promise.allSettled with AbortSignals). Message format prefixes ticket ID. Built `seed50Tickets` for simulated burst testing.
 
-### Next task — SLA Channels (TASKS 29–30) (start here)
-This implements the emergency escalation channels (tech_design §7).
-- Task 29: Dashboard takeover UI (persistent red banner + audio alarm via WebSocket).
-- Task 30: `convex/lib/resend.ts` — Resend escalation email stub.
+- **SLA Channels (29–30)**: Built `EmergencyTakeover.tsx` dashboard UI with looping audio alarm (subscribes to `getActiveEscalations`). Built `convex/lib/resend.ts` email stub and wired it to `checkEmergencySla` and `queue.ts` dead-letter triggers.
+
+### Next task — Dashboard (TASKS 31–35) (start here)
+This implements the public and admin views (tech_design §6).
+- Task 31: Public ticket list (real-time Convex).
+- Task 32: Metrics (TTR and SBL).
+- Task 33: Campus health breakdown by location.
+- Task 34: Volunteer resolution workflow.
+- Task 35: Leaderboard (explicitly labeled "not a CSP-hours record").
 
 ### Then, in TASKS.md order
 - SLA channels (29 dashboard takeover UI, 30 Resend email stub).

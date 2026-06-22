@@ -1,4 +1,5 @@
 import { internalMutation } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 
 // Emergency SLA monitor (tech_design.md §7).
@@ -44,7 +45,17 @@ export const checkEmergencySla = internalMutation({
       acknowledged_at: null,
     });
 
-    // TASK-30 will schedule the Resend escalation email here.
+    const ticket = await ctx.db.get(ticket_id);
+    if (ticket) {
+      await ctx.scheduler.runAfter(0, internal.lib.resend.sendEscalationEmail, {
+        ticketId: ticket_id,
+        reason: "SLA Breach (60 seconds)",
+        headline: ticket.headline,
+        location_entity: ticket.location_entity,
+        description: ticket.description,
+      });
+    }
+
     return { breached: true as const, alreadyRecorded: false };
   },
 });
