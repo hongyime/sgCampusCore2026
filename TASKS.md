@@ -69,7 +69,7 @@
 > single-tenant `@smu.edu.sg` assumption — flagged in STATUS.md.
 - [x] TASK-38: `config/schoolRegistry.ts` — researched SG institution registry
       (universities, polytechnics, ITE, MOE schools) with student + staff domains.
-- [ ] TASK-39: `config/school.ts` — active-school resolution from env; school-member
+- [x] TASK-39: `config/school.ts` — active-school resolution from env; school-member
       and admin email predicates (admin = staff domain AND allowlist). Stub-tolerant.
 - [ ] TASK-40: Rewire `middleware.ts` + `convex/pairing.ts` off hardcoded
       `@smu.edu.sg` onto the config module; add admin-allowlist gate for admin routes.
