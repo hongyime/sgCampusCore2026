@@ -27,7 +27,7 @@
 - [ ] TASK-13: Ingestion mutation — create `tickets` row, enqueue egress, fire `runAfter(60000, check_emergency_sla)` for tier-1.
 
 ## Triage Logic (tech_design §3)
-- [ ] TASK-14: `convex/lib/ahoCorasick.ts` — Aho-Corasick automaton + fixed hazard lexicon ingestion (lexicon list is an approval-checkpoint item — keep it in one named file).
+- [x] TASK-14: `convex/lib/ahoCorasick.ts` — Aho-Corasick automaton + fixed hazard lexicon ingestion (lexicon list is an approval-checkpoint item — kept in `convex/lib/lexicon.ts`).
 - [ ] TASK-15: Severity floor — lexicon match hardcodes `priority_tier: 1`, server-side only, immutable after ingestion. LLM severity ignored on match.
 - [ ] TASK-16: `convex/lib/llmTriage.ts` — LLM structured-output call (stubbed API key) returning `{ headline, severity_score, routing_tag, location_entity }`; **never** writes `priority_tier`.
 - [ ] TASK-17: Category state machine — first write always honored (sets tier-1 only if "Safety" + first write); correction honored only if `Date.now() - initial_tap_at <= 15000`, else visual-only.
