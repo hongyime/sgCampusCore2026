@@ -33,34 +33,18 @@
   ticket + egress row → `runAfter(60_000, internal.sla.checkEmergencySla)` for
   tier-1); `convex/sla.ts` (`checkEmergencySla`: at 60s, if egress not "sent",
   writes idempotent `sla_breach` escalation).
+- **Category State Machine (17)**: `convex/category.ts` + webhook dispatcher.
+  First write sets category + `initial_tap_at`, upgrades to tier 1 if "Safety".
+  Corrections within 15s are allowed to upgrade tier but never downgrade.
+  Outside 15s, updates are visual-only.
 
-### Next task — TASK-17 (start here): category first-write / 15s correction
-This is a SAFETY-CRITICAL priority_tier path (AGENTS.md approval checkpoint —
-the 15s window). Read tech_design §3.4 carefully. Build:
-- Parse `callback_query.data` in `convex/http.ts` (format suggestion:
-  `cat:<Category>:<ticketId>`), then call a new mutation, e.g.
-  `convex/category.ts` → `tapCategory({ ticketId, category })`.
-- **First write** (`category === null`): always honored regardless of elapsed
-  time. Set `category`, set `initial_tap_at = Date.now()`, `triage_status`
-  stays/locks per design. If the tapped category is "Safety", the SERVER sets
-  `priority_tier = 1` here — this is the one allowed priority_tier write
-  outside the lexicon floor (§3.4). The client sends the *category*, never the
-  tier; the server derives the tier. This does NOT violate AGENTS.md's "no
-  client-facing priority_tier write" rule **as long as** the tier is derived
-  server-side from the category+first-write rule, not taken from input.
-- **Correction** (`category !== null`): honored only if
-  `Date.now() - initial_tap_at <= 15000`. Outside the window, update `category`
-  for dashboard accuracy but DO NOT change `priority_tier` (closes the
-  re-tap-Safety queue-jump vector). Within the window: decide explicitly
-  whether a correction may change tier — note that a lexicon-set tier-1 should
-  be treated as immutable (do not let a category correction DOWNGRADE an
-  emergency the lexicon raised). Flag this decision in your commit/STATUS.
-- The webhook already acknowledges the tap via the synchronous
-  `answerCallbackQuery` slot; the mutation is the durable write.
+### Next task — TASK-18 (start here): Moderation (ONNX WASM scorer)
+This is the start of the image moderation pipeline (tech_design §4).
+- Parse `onnxruntime-web` for a quantized model load, score image NSFW/violence.
+- Ensure there is NO `pending_review` state. `P>=0.50` means delete + placeholder, `P<0.50` means pass.
 
 ### Then, in TASKS.md order
-- Moderation (18–21): ONNX WASM scorer, P>=0.50 delete + placeholder (no
-  pending_review), CSAM behind `CSAM_SCAN_ENABLED` flag, Mini App upload bridge.
+- Moderation (19–21): Threshold logic, CSAM flag, Mini App upload bridge.
 - Egress Queue (22–27): `claim_batch`/`finalize_batch`, reaper (10min+30s TTL,
   retry>=3 → dead_letter, tier-1 dead_letter → `_critical_escalations`),
   Worker A (batch=1), Worker B (batch=25, per-request 5s AbortSignal), ticket_id

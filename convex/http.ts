@@ -75,8 +75,23 @@ const telegramWebhook = httpAction(async (ctx, request) => {
   // user-facing ack does not wait on it.
   if (update.callback_query) {
     const cq = update.callback_query;
-    // TASK-17 will parse `cq.data` and call the category-tap mutation here.
-    // Skeleton: acknowledge the tap immediately via the synchronous slot.
+    
+    // Parse cq.data (format: "cat:<Category>:<ticketId>")
+    if (cq.data && cq.data.startsWith("cat:")) {
+      const parts = cq.data.split(":");
+      if (parts.length === 3) {
+        const category = parts[1];
+        const ticketId = parts[2] as any;
+        
+        // Dispatch the durable write. Awaited so the action doesn't terminate prematurely.
+        await ctx.runMutation(internal.category.tapCategory, {
+          ticketId,
+          category: category as any,
+        });
+      }
+    }
+
+    // Acknowledge the tap immediately via the synchronous slot.
     return methodReply("answerCallbackQuery", {
       callback_query_id: cq.id,
       text: "Got it.",
