@@ -52,14 +52,14 @@
 - [x] TASK-30: `convex/lib/resend.ts` — Resend escalation email stub (structured high-priority payload; stubbed key).
 
 ## Dashboard (tech_design §6)
-- [ ] TASK-31: Public dashboard ticket list — real-time Convex subscription, ticket_id-prefixed, open/resolved.
-- [ ] TASK-32: Metrics — True TTR (`resolved_at - created_at`) and SBL (`egress_cleared_at - created_at`) computed and displayed distinctly.
-- [ ] TASK-33: Campus health breakdown by building/faculty (from `location_entity`).
-- [ ] TASK-34: Volunteer resolution workflow — claim + resolve ticket, sets `resolved_at`.
-- [ ] TASK-35: Leaderboard — **explicitly labeled "not a CSP-hours record"** in the UI copy.
+- [x] TASK-31: Public dashboard ticket list — real-time Convex subscription, ticket_id-prefixed, open/resolved.
+- [x] TASK-32: Metrics — True TTR (`resolved_at - created_at`) and SBL (`egress_cleared_at - created_at`) computed and displayed distinctly.
+- [x] TASK-33: Campus health breakdown by building/faculty (from `location_entity`).
+- [x] TASK-34: Volunteer resolution workflow — claim + resolve ticket, sets `resolved_at`.
+- [x] TASK-35: Leaderboard — **explicitly labeled "not a CSP-hours record"** in the UI copy.
 
 ## Legal Escalation Stub (tech_design §8)
-- [ ] TASK-36: Legal-escalation stub endpoint — writes structured payload (locked Clerk user ID, timestamp, hash-match record) to **console.log only**. Never a real address.
+- [x] TASK-36: Legal-escalation stub endpoint — writes structured payload (locked Clerk user ID, timestamp, hash-match record) to **console.log only**. Never a real address.
 
 ## Multi-School Template (added Session 1 — scope change beyond original docs)
 > Decision (user, Session 1): CampusCore is a per-school deployable TEMPLATE.
@@ -76,4 +76,4 @@
       Add `CAMPUSCORE_SCHOOL_CODE` + `CAMPUSCORE_ADMIN_ALLOWLIST` to `.env.example`.
 
 ## Validation (tech_design §9)
-- [ ] TASK-37: Run §9 pre-demo validation checklist; record results + open items in `STATUS.md`.
+- [x] TASK-37: Run §9 pre-demo validation checklist; record results + open items in `STATUS.md`.

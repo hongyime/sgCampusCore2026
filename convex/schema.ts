@@ -108,6 +108,13 @@ export default defineSchema({
     acknowledged_at: v.optional(v.union(v.number(), v.null())),
   }).index("by_ticket", ["ticket_id"]),
 
+  // Resolutions (TASK-34 & TASK-35)
+  _resolutions: defineTable({
+    ticket_id: v.id("tickets"),
+    resolver_id: v.string(), // Clerk User ID
+    resolved_at: v.number(),
+  }).index("by_resolver", ["resolver_id"]),
+
   // Telegram deep-link pairing tokens (tech_design §1). 3-minute TTL,
   // single-use, redeemed by one atomic serializable mutation. Second
   // redemption / expired / unknown token all FAIL CLOSED.
