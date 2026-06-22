@@ -33,10 +33,10 @@
 - [x] TASK-17: Category state machine — first write always honored (sets tier-1 only if "Safety" + first write); correction honored only if `Date.now() - initial_tap_at <= 15000`, else visual-only.
 
 ## Moderation Pipeline (tech_design §4)
-- [ ] TASK-18: `convex/lib/nsfwScorer.ts` (or Next API route) — ONNX Runtime **WASM** scorer module (`onnxruntime-web`), quantized model load.
-- [ ] TASK-19: Threshold logic — `P>=0.50` → delete + "Image automatically removed" placeholder; `P<0.50` → pass. **No `pending_review` state. No human view.**
-- [ ] TASK-20: Cloudflare CSAM hash-match step behind a `CSAM_SCAN_ENABLED` feature flag (stubbed off until zone is orange-clouded — see WAITING_ON_HUMAN.md).
-- [ ] TASK-21: Telegram Mini App upload bridge — force image upload through the Cloudflare-proxied zone (not Telegram `getFile`).
+- [x] TASK-18: `convex/lib/nsfwScorer.ts` (or Next API route) — ONNX Runtime **WASM** scorer module (`onnxruntime-web`), quantized model load.
+- [x] TASK-19: Threshold logic — `P>=0.50` → delete + "Image automatically removed" placeholder; `P<0.50` → pass. **No `pending_review` state. No human view.**
+- [x] TASK-20: Cloudflare CSAM hash-match step behind a `CSAM_SCAN_ENABLED` feature flag (stubbed off until zone is orange-clouded — see WAITING_ON_HUMAN.md).
+- [x] TASK-21: Telegram Mini App upload bridge — force image upload through the Cloudflare-proxied zone (not Telegram `getFile`).
 
 ## Egress Queue (tech_design §5, §6)
 - [ ] TASK-22: `convex/queue.ts` — `claim_batch` mutation: atomically read top-N `pending` (compound-index order) → `processing` in one serializable transaction.

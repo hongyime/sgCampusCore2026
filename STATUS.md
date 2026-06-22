@@ -37,18 +37,20 @@
   First write sets category + `initial_tap_at`, upgrades to tier 1 if "Safety".
   Corrections within 15s are allowed to upgrade tier but never downgrade.
   Outside 15s, updates are visual-only.
+- **Moderation Pipeline (18–21)**: Built `app/api/upload/route.ts` as the Telegram
+  Mini App upload bridge (enforcing Cloudflare CSAM scan). Used `onnxruntime-web`
+  in `convex/lib/nsfwScorer.ts` for scoring. Added `updateImageModerationResult`
+  mutation (`convex/moderation.ts`) and `image_storage_id` to schema. Threshold
+  is `P >= 0.50` (removed) / `< 0.50` (broadcast + stored). No `pending_review`.
 
-### Next task — TASK-18 (start here): Moderation (ONNX WASM scorer)
-This is the start of the image moderation pipeline (tech_design §4).
-- Parse `onnxruntime-web` for a quantized model load, score image NSFW/violence.
-- Ensure there is NO `pending_review` state. `P>=0.50` means delete + placeholder, `P<0.50` means pass.
+### Next task — Egress Queue (TASKS 22–27) (start here)
+This is the core of the priority broadcast system (tech_design §5).
+- Build `convex/queue.ts` with `claim_batch` (atomically read top-N `pending` to `processing`) and `finalize_batch`.
+- Build the Reaper: sweeps `processing` > 10m30s to `pending`. At `retry_count >= 3`, moves to `dead_letter`.
+- Build Worker A (Express, batch=1, tier-1) and Worker B (Standard, batch=25, tier-2).
+- **CRITICAL**: Burst-test 50+ tickets before commit (AGENTS.md).
 
 ### Then, in TASKS.md order
-- Moderation (19–21): Threshold logic, CSAM flag, Mini App upload bridge.
-- Egress Queue (22–27): `claim_batch`/`finalize_batch`, reaper (10min+30s TTL,
-  retry>=3 → dead_letter, tier-1 dead_letter → `_critical_escalations`),
-  Worker A (batch=1), Worker B (batch=25, per-request 5s AbortSignal), ticket_id
-  broadcast prefix. **Burst-test 50+ tickets before commit (AGENTS.md).**
 - SLA channels (29 dashboard takeover UI, 30 Resend email stub).
 - Dashboard (31–35), Legal stub (36), Validation (37).
 

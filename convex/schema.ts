@@ -54,6 +54,7 @@ export default defineSchema({
       v.literal("broadcast"),
       v.literal("removed"),
     ),
+    image_storage_id: v.optional(v.id("_storage")),
     // Clerk user id of the reporter. Treated as PII-linked; do not log JWTs.
     reporter_id: v.optional(v.string()),
     // LLM severity score — informs dashboard sorting ONLY, never priority_tier.
