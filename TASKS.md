@@ -23,7 +23,7 @@
 - [x] TASK-11: 30-day re-verification gate — `last_verified_at` blocks further bot activity until SSO re-auth. (`convex/lib/verification.ts`; wired into webhook in TASK-12/13.)
 
 ## Telegram Ingestion (tech_design §1, §3)
-- [ ] TASK-12: `convex/http.ts` Telegram webhook skeleton (stubbed token) — parses update, uses the **synchronous webhook-reply slot** for `answerCallbackQuery` (one method per update).
+- [x] TASK-12: `convex/http.ts` Telegram webhook skeleton (stubbed token) — parses update, uses the **synchronous webhook-reply slot** for `answerCallbackQuery` (one method per update).
 - [ ] TASK-13: Ingestion mutation — create `tickets` row, enqueue egress, fire `runAfter(60000, check_emergency_sla)` for tier-1.
 
 ## Triage Logic (tech_design §3)
