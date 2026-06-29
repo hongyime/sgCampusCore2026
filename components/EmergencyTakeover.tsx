@@ -6,6 +6,12 @@ import { useEffect, useRef } from "react";
 
 // TASK-29: Dashboard takeover UI
 export default function EmergencyTakeover() {
+  if (!process.env.NEXT_PUBLIC_CONVEX_URL) return null;
+
+  return <EmergencyTakeoverContent />;
+}
+
+function EmergencyTakeoverContent() {
   const escalations = useQuery(api.escalations.getActiveEscalations);
   const acknowledge = useMutation(api.escalations.acknowledgeEscalation);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -14,7 +20,11 @@ export default function EmergencyTakeover() {
     // If there are active escalations, play the alarm
     if (escalations && escalations.length > 0) {
       if (audioRef.current) {
-        audioRef.current.play().catch(e => console.error("Audio play failed (interaction needed):", e));
+        audioRef.current
+          .play()
+          .catch((error: unknown) =>
+            console.error("Audio play failed (interaction needed):", error),
+          );
       }
     } else {
       if (audioRef.current) {

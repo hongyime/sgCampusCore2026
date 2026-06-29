@@ -14,8 +14,14 @@ export const sendEscalationEmail = internalAction({
   },
   handler: async (ctx, args) => {
     const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      console.warn("[Resend] Stub mode: No API key. Would have sent escalation email:", args);
+    const from = process.env.RESEND_FROM_EMAIL;
+    const to = process.env.RESEND_ESCALATION_TO;
+
+    if (!apiKey || !from || !to) {
+      console.warn(
+        "[Resend] Stub mode: missing API key, sender, or recipient. Would have sent escalation email:",
+        args,
+      );
       return;
     }
 
@@ -23,8 +29,8 @@ export const sendEscalationEmail = internalAction({
     
     try {
       await resend.emails.send({
-        from: "campuscore-alerts@yourdomain.com",
-        to: "csoc-emergency@smu.edu.sg", // Stub target
+        from,
+        to,
         subject: `🚨 [URGENT] Escalation: ${args.headline}`,
         html: `
           <h1>Emergency Escalation Triggered</h1>
@@ -36,8 +42,11 @@ export const sendEscalationEmail = internalAction({
         `,
       });
       console.log(`[Resend] Escalation email sent for ticket ${args.ticketId}`);
-    } catch (error: any) {
-      console.error(`[Resend] Failed to send escalation email:`, error.message);
+    } catch (error: unknown) {
+      console.error(
+        "[Resend] Failed to send escalation email:",
+        error instanceof Error ? error.message : error,
+      );
     }
   }
 });

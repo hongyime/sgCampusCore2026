@@ -20,6 +20,9 @@ next-env.d.ts
 # convex
 .convex/
 
+# agent/runtime metadata
+.omo/
+
 # misc
 *.tsbuildinfo
 .DS_Store

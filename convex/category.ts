@@ -1,6 +1,14 @@
 import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { ticketCategory } from "./schema";
+import type { Doc } from "./_generated/dataModel";
+
+type TicketCategoryPatch = Partial<
+  Pick<
+    Doc<"tickets">,
+    "category" | "initial_tap_at" | "triage_status" | "priority_tier"
+  >
+>;
 
 // Category state machine (tech_design.md §3.4).
 export const tapCategory = internalMutation({
@@ -19,7 +27,7 @@ export const tapCategory = internalMutation({
 
     // 1. First write: always honored regardless of elapsed time.
     if (ticket.category === null) {
-      const updates: any = {
+      const updates: TicketCategoryPatch = {
         category: args.category,
         initial_tap_at: now,
         triage_status: "locked",
@@ -45,7 +53,7 @@ export const tapCategory = internalMutation({
 
     // 2. Correction: honored only if Date.now() - initial_tap_at <= 15000.
     if (ticket.initial_tap_at !== null && now - ticket.initial_tap_at <= 15000) {
-      const updates: any = {
+      const updates: TicketCategoryPatch = {
         category: args.category,
       };
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { scoreImageNsfw } from "@/convex/lib/nsfwScorer";
 
 export const maxDuration = 10; // Serverless function max duration (Vercel)
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
       console.log(`[Upload] Ticket ${ticketId}: NSFW score ${nsfwScore} >= 0.50. Rejecting image.`);
       
       await convex.mutation(api.moderation.updateImageModerationResult, {
-        ticketId: ticketId as any,
+        ticketId: ticketId as Id<"tickets">,
         status: "removed",
         secret,
       });
@@ -67,11 +68,13 @@ export async function POST(request: Request) {
       throw new Error(`Failed to upload to Convex storage: ${uploadResult.statusText}`);
     }
 
-    const { storageId } = await uploadResult.json();
+    const { storageId } = (await uploadResult.json()) as {
+      storageId: Id<"_storage">;
+    };
 
     // 5. Update ticket with "broadcast" status and storageId
     await convex.mutation(api.moderation.updateImageModerationResult, {
-      ticketId: ticketId as any,
+      ticketId: ticketId as Id<"tickets">,
       status: "broadcast",
       storageId,
       secret,
@@ -79,8 +82,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true, status: "broadcast" });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Upload] Error processing image:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Internal Server Error",
+      },
+      { status: 500 },
+    );
   }
 }

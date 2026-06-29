@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     console.warn("=================================================");
 
     return NextResponse.json({ ok: true, stub: true });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
       { error: "Invalid payload format" },
       { status: 400 }

@@ -4,12 +4,6 @@
 > action. The build never blocks on these — each is stubbed in code and the
 > real requirement is listed here. Add to this file when new items are found.
 
-## Security (do soon)
-- [ ] **Rotate the GitHub PAT embedded in the `origin` remote URL.** It is stored
-      in plaintext in `.git/config` (`https://ghp_…@github.com/...`). Rotate at
-      github.com/settings/tokens, then re-point the remote to SSH or a credential
-      helper so no token lives in config. (Discovered session 1.)
-
 ## Credentials & Keys (stubbed via .env.example)
 - [ ] **Telegram** — bot token (via @BotFather) + webhook URL registration
       (`setWebhook` to the deployed Convex HTTP endpoint). Code path stubbed.

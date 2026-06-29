@@ -12,7 +12,7 @@
 //
 // CLERK_JWT_ISSUER_DOMAIN is set as a CONVEX environment variable (via
 // `npx convex env set` or the Convex dashboard), not via Next's .env.local.
-export default {
+const authConfig = {
   providers: [
     {
       domain: process.env.CLERK_JWT_ISSUER_DOMAIN,
@@ -20,3 +20,5 @@ export default {
     },
   ],
 };
+
+export default authConfig;

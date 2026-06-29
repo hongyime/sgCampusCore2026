@@ -59,5 +59,6 @@ export const config = {
     // Skip Next internals and static files; run on app + API routes.
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpg|jpeg|gif|png|svg|ico|webp|woff2?)).*)",
     "/(api|trpc)(.*)",
+    "/__clerk/:path*",
   ],
 };

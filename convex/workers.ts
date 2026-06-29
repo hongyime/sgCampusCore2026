@@ -1,11 +1,25 @@
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
+import type { ActionCtx } from "./_generated/server";
+import type { Doc, Id } from "./_generated/dataModel";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID;
 
+type TelegramPayload =
+  | { chat_id: string; text: string }
+  | { chat_id: string; photo: string; caption: string };
+
+type FinalizeResult = {
+  id: Id<"_telegram_egress_queue">;
+  success: boolean;
+};
+
 // Helper to broadcast a ticket to the Telegram channel (TASK-27)
-async function broadcastTicket(ctx: any, egressRow: any, ticket: any): Promise<boolean> {
+async function broadcastTicket(
+  ctx: ActionCtx,
+  ticket: Doc<"tickets">,
+): Promise<boolean> {
   if (!BOT_TOKEN || !CHANNEL_ID) {
     console.warn("[Workers] Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHANNEL_ID. Skipping broadcast.");
     return false; // Fail so it retries
@@ -23,7 +37,7 @@ async function broadcastTicket(ctx: any, egressRow: any, ticket: any): Promise<b
   }
 
   let endpoint = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-  let payload: any = {
+  let payload: TelegramPayload = {
     chat_id: CHANNEL_ID,
     text: text,
   };
@@ -59,8 +73,11 @@ async function broadcastTicket(ctx: any, egressRow: any, ticket: any): Promise<b
       return false;
     }
     return true;
-  } catch (error: any) {
-    console.error(`[Workers] Broadcast failed for ticket ${ticket._id}:`, error.message);
+  } catch (error: unknown) {
+    console.error(
+      `[Workers] Broadcast failed for ticket ${ticket._id}:`,
+      error instanceof Error ? error.message : error,
+    );
     return false;
   } finally {
     clearTimeout(timeoutId);
@@ -79,7 +96,7 @@ export const workerA = internalAction({
 
     if (batch.length === 0) return;
 
-    const results = [];
+    const results: FinalizeResult[] = [];
     for (const row of batch) {
       const ticket = await ctx.runQuery(internal.queue.getTicket, { id: row.ticket_id });
       if (!ticket) {
@@ -87,7 +104,7 @@ export const workerA = internalAction({
         continue;
       }
       
-      const success = await broadcastTicket(ctx, row, ticket);
+      const success = await broadcastTicket(ctx, ticket);
       results.push({ id: row._id, success });
     }
 
@@ -114,7 +131,7 @@ export const workerB = internalAction({
       if (!ticket) {
         return { id: row._id, success: false };
       }
-      const success = await broadcastTicket(ctx, row, ticket);
+      const success = await broadcastTicket(ctx, ticket);
       return { id: row._id, success };
     });
 

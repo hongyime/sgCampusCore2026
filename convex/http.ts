@@ -1,6 +1,7 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 import { runTriage } from "./lib/llmTriage";
 
 // Telegram webhook ingestion (tech_design.md §1, §3).
@@ -36,6 +37,19 @@ interface TgUpdate {
   update_id: number;
   message?: TgMessage;
   callback_query?: TgCallbackQuery;
+}
+
+const TELEGRAM_CATEGORIES = [
+  "Facilities",
+  "Janitorial",
+  "Safety",
+  "Lost & Found",
+] as const;
+
+type TelegramCategory = (typeof TELEGRAM_CATEGORIES)[number];
+
+function parseTelegramCategory(value: string): TelegramCategory | null {
+  return TELEGRAM_CATEGORIES.find((category) => category === value) ?? null;
 }
 
 // Synchronous webhook-reply helper: returns a 200 whose JSON body is a single
@@ -80,14 +94,16 @@ const telegramWebhook = httpAction(async (ctx, request) => {
     if (cq.data && cq.data.startsWith("cat:")) {
       const parts = cq.data.split(":");
       if (parts.length === 3) {
-        const category = parts[1];
-        const ticketId = parts[2] as any;
-        
-        // Dispatch the durable write. Awaited so the action doesn't terminate prematurely.
-        await ctx.runMutation(internal.category.tapCategory, {
-          ticketId,
-          category: category as any,
-        });
+        const category = parseTelegramCategory(parts[1]);
+        const ticketId = parts[2];
+
+        if (category && ticketId) {
+          // Dispatch the durable write. Awaited so the action doesn't terminate prematurely.
+          await ctx.runMutation(internal.category.tapCategory, {
+            ticketId: ticketId as Id<"tickets">,
+            category,
+          });
+        }
       }
     }
 

@@ -1,5 +1,9 @@
 import { mutation } from "./_generated/server";
 import { v } from "convex/values";
+import type { Doc } from "./_generated/dataModel";
+
+type ImageModerationPatch = Pick<Doc<"tickets">, "image_status"> &
+  Partial<Pick<Doc<"tickets">, "image_storage_id">>;
 
 // TASK-19: Moderation pipeline ticket update (tech_design §4).
 // This is called by the Next.js API route after the image passes Cloudflare (CSAM)
@@ -25,7 +29,7 @@ export const updateImageModerationResult = mutation({
       return;
     }
 
-    const updates: any = {
+    const updates: ImageModerationPatch = {
       image_status: args.status,
     };
 
