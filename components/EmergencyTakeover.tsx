@@ -2,7 +2,18 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Doc } from "@/convex/_generated/dataModel";
 import { useEffect, useRef } from "react";
+
+// Local alias for the shape returned by `api.escalations.getActiveEscalations`:
+// a critical_escalations row joined with the headline + location_entity of the
+// referenced ticket. The generated `api` is currently AnyApi, so the useQuery
+// result is untyped; this narrows the map callback parameter without changing
+// runtime behavior.
+type ActiveEscalation = Doc<"critical_escalations"> & {
+  headline: string;
+  location_entity: string;
+};
 
 // TASK-29: Dashboard takeover UI
 export default function EmergencyTakeover() {
@@ -47,7 +58,7 @@ function EmergencyTakeoverContent() {
         </h1>
         
         <div className="space-y-6">
-          {escalations.map((esc) => (
+          {(escalations as ActiveEscalation[]).map((esc) => (
             <div key={esc._id} className="bg-white p-6 rounded-xl border-l-8 border-red-600 shadow-md">
               <div className="flex justify-between items-start mb-4">
                 <div>

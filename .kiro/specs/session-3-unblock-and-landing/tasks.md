@@ -169,7 +169,7 @@
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
     - _Design: §C1, Property 4_
 
-- [ ] 14. Seed Convex_Env via `npx convex env set` for every Convex-side
+- [x] 14. Seed Convex_Env via `npx convex env set` for every Convex-side
       variable
     - From the Local_Mirror, run one `npx convex env set NAME VALUE` per
       key, sourcing values from `.env.convex.local`:
@@ -183,7 +183,7 @@
     - _Requirements: 6.1, 6.3, 6.5_
     - _Design: §C1, §C7 §5_
 
-- [ ] 15. Copy fresh `convex/_generated/` back into the UNC repo tree
+- [x] 15. Copy fresh `convex/_generated/` back into the UNC repo tree
       **only if needed for local dev on that path**
     - Since `.gitignore` covers the directory (Task 1), nothing is
       staged — this is a local convenience so editors on the UNC path
@@ -195,7 +195,7 @@
 
 ## Wave 4 — Local build green (blocked on Wave 3)
 
-- [ ] 16. Run `npm run typecheck` in the Local_Mirror; fix generated-type
+- [x] 16. Run `npm run typecheck` in the Local_Mirror; fix generated-type
       fallout
     - Expected fallout: type mismatches between the placeholder
       `Id<"tickets">` shapes in `app/dashboard/page.tsx` and the actual
@@ -205,10 +205,10 @@
     - _Requirements: 2.1, 2.4_
     - _Design: §C5 row 2_
 
-- [ ] 17. Run `npm run lint` in the Local_Mirror; fix any regressions
+- [x] 17. Run `npm run lint` in the Local_Mirror; fix any regressions
     - _Requirements: 2.2_
 
-- [ ] 18. Run `npm run build` in the Local_Mirror; fix any build
+- [x] 18. Run `npm run build` in the Local_Mirror; fix any build
       failures inside Session 3 scope
     - Anticipated: promo image 404s (Task 9), metadata warnings (Task
       8), TS strict-mode issues on generated types (Task 16).
@@ -218,7 +218,7 @@
     - _Requirements: 2.3, 2.5, 2.6_
     - _Design: §C5_
 
-- [ ] 19. Run all Wave-1 verification scripts and the unit tests
+- [x] 19. Run all Wave-1 verification scripts and the unit tests
     - `node scripts/verify-env-boundary.mjs`
     - `node scripts/verify-deletable-promo.mjs`
     - `node scripts/verify-no-committed-codegen.mjs`
