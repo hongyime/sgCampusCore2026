@@ -1,0 +1,4 @@
+{
+  "buildCommand": "npx convex deploy --cmd 'next build'",
+  "installCommand": "npm ci"
+}

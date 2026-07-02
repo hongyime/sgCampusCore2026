@@ -228,7 +228,7 @@
 
 ## Wave 5 — Deployment documentation and Vercel wiring
 
-- [ ] 20. Rewrite `DEPLOYMENT.md` per design §C7 structure
+- [x] 20. Rewrite `DEPLOYMENT.md` per design §C7 structure
     - Overview / Prerequisites / Env variable reference table / Local
       dev setup / Convex env seeding (with `<PLACEHOLDER>` values only) /
       Vercel setup / Fork-and-deploy runbook / AGENTS.md hard
