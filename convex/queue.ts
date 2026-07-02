@@ -10,7 +10,7 @@ export const claimBatch = internalMutation({
   },
   handler: async (ctx, args) => {
     const pending = await ctx.db
-      .query("_telegram_egress_queue")
+      .query("telegram_egress_queue")
       .withIndex("by_status_priority_created", (q) =>
         q.eq("status", "pending").eq("priority_tier", args.priority_tier)
       )
@@ -33,7 +33,7 @@ export const finalizeBatch = internalMutation({
   args: {
     results: v.array(
       v.object({
-        id: v.id("_telegram_egress_queue"),
+        id: v.id("telegram_egress_queue"),
         success: v.boolean(),
       })
     ),
@@ -60,7 +60,7 @@ export const finalizeBatch = internalMutation({
           });
 
           if (row.priority_tier === 1) {
-            await ctx.db.insert("_critical_escalations", {
+            await ctx.db.insert("critical_escalations", {
               ticket_id: row.ticket_id,
               reason: "dead_letter",
               created_at: now,
@@ -78,14 +78,28 @@ export const finalizeBatch = internalMutation({
   },
 });
 
-// TASK-24: Reaper
+// TASK-24: Reaper.
+// Iterates both tiers via the load-bearing compound index
+// (by_status, priority_tier, created_at) — we intentionally do NOT add a
+// separate `by_status`-only index. Two range scans (tier-1 then tier-2)
+// preserve tier ordering and let the reaper reuse the same B-tree the
+// workers claim from.
 export const reapStaleProcessing = internalMutation({
   args: {},
   handler: async (ctx) => {
-    const processing = await ctx.db
-      .query("_telegram_egress_queue")
-      .withIndex("by_status", (q) => q.eq("status", "processing"))
+    const tier1Processing = await ctx.db
+      .query("telegram_egress_queue")
+      .withIndex("by_status_priority_created", (q) =>
+        q.eq("status", "processing").eq("priority_tier", 1),
+      )
       .collect();
+    const tier2Processing = await ctx.db
+      .query("telegram_egress_queue")
+      .withIndex("by_status_priority_created", (q) =>
+        q.eq("status", "processing").eq("priority_tier", 2),
+      )
+      .collect();
+    const processing = [...tier1Processing, ...tier2Processing];
 
     const now = Date.now();
     const TIMEOUT_MS = 10 * 60 * 1000 + 30000; // 10m30s
@@ -101,7 +115,7 @@ export const reapStaleProcessing = internalMutation({
           });
 
           if (row.priority_tier === 1) {
-            await ctx.db.insert("_critical_escalations", {
+            await ctx.db.insert("critical_escalations", {
               ticket_id: row.ticket_id,
               reason: "dead_letter",
               created_at: now,

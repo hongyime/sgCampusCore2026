@@ -29,6 +29,11 @@ export const createPairingToken = mutation({
       throw new Error("Institutional account for this school required");
     }
 
+    // Entropy floor: >=128 bits from Web Crypto CSPRNG. `crypto.randomUUID()`
+    // yields 122 bits from a v4 UUID (accepted lower bound per Requirement 5.4
+    // and design § LLD-3). Preferred alternative:
+    // `hexEncode(crypto.getRandomValues(new Uint8Array(16)))` for a clean 128
+    // bits. `Math.random` is explicitly forbidden.
     const token = crypto.randomUUID().replace(/-/g, "");
     const now = Date.now();
     await ctx.db.insert("pairings", {

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { scoreImageNsfw } from "@/convex/lib/nsfwScorer";
+import { scoreImageNsfw } from "@/lib/nsfwScorer";
 
 export const maxDuration = 10; // Serverless function max duration (Vercel)
 

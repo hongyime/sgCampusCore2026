@@ -19,7 +19,7 @@ export const checkEmergencySla = internalMutation({
   args: { ticket_id: v.id("tickets") },
   handler: async (ctx, { ticket_id }) => {
     const egress = await ctx.db
-      .query("_telegram_egress_queue")
+      .query("telegram_egress_queue")
       .withIndex("by_ticket", (q) => q.eq("ticket_id", ticket_id))
       .unique();
 
@@ -31,14 +31,14 @@ export const checkEmergencySla = internalMutation({
     // Idempotent: a duplicate scheduled run (or a later dead-letter escalation)
     // must not create a second sla_breach record for the same ticket.
     const existing = await ctx.db
-      .query("_critical_escalations")
+      .query("critical_escalations")
       .withIndex("by_ticket", (q) => q.eq("ticket_id", ticket_id))
       .collect();
     if (existing.some((e) => e.reason === "sla_breach")) {
       return { breached: true as const, alreadyRecorded: true };
     }
 
-    await ctx.db.insert("_critical_escalations", {
+    await ctx.db.insert("critical_escalations", {
       ticket_id,
       reason: "sla_breach",
       created_at: Date.now(),

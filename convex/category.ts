@@ -39,7 +39,7 @@ export const tapCategory = internalMutation({
 
         // Also update egress queue row so Worker A picks it up.
         const egressRow = await ctx.db
-          .query("_telegram_egress_queue")
+          .query("telegram_egress_queue")
           .withIndex("by_ticket", (q) => q.eq("ticket_id", ticket._id))
           .first();
         if (egressRow) {
@@ -63,7 +63,7 @@ export const tapCategory = internalMutation({
         updates.priority_tier = 1;
 
         const egressRow = await ctx.db
-          .query("_telegram_egress_queue")
+          .query("telegram_egress_queue")
           .withIndex("by_ticket", (q) => q.eq("ticket_id", ticket._id))
           .first();
         if (egressRow) {

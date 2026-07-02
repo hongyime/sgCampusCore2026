@@ -17,7 +17,7 @@ export const getTickets = query({
     const enriched = await Promise.all(
       tickets.map(async (t) => {
         const egress = await ctx.db
-          .query("_telegram_egress_queue")
+          .query("telegram_egress_queue")
           .withIndex("by_ticket", (q) => q.eq("ticket_id", t._id))
           .unique();
           
@@ -62,7 +62,7 @@ export const getMetrics = query({
 
       // SBL computation
       const egress = await ctx.db
-        .query("_telegram_egress_queue")
+        .query("telegram_egress_queue")
         .withIndex("by_ticket", (q) => q.eq("ticket_id", t._id))
         .unique();
         
@@ -102,8 +102,8 @@ export const resolveTicket = mutation({
     });
 
     // To compute leaderboard, we could write an event or just use a new table.
-    // For now we will insert into a new `_resolutions` table.
-    await ctx.db.insert("_resolutions", {
+    // For now we will insert into the `resolutions` table.
+    await ctx.db.insert("resolutions", {
       ticket_id: args.ticketId,
       resolver_id: args.userId,
       resolved_at: Date.now(),
@@ -115,7 +115,7 @@ export const resolveTicket = mutation({
 export const getLeaderboard = query({
   args: {},
   handler: async (ctx) => {
-    const resolutions = await ctx.db.query("_resolutions").collect();
+    const resolutions = await ctx.db.query("resolutions").collect();
     const counts: Record<string, number> = {};
     
     for (const res of resolutions) {

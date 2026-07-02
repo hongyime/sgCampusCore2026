@@ -55,7 +55,7 @@ export const createTicket = internalMutation({
 
     // 3b. Egress-queue row. priority_tier mirrored so the compound index can
     // cluster tier-1 ahead of tier-2 without a join.
-    await ctx.db.insert("_telegram_egress_queue", {
+    await ctx.db.insert("telegram_egress_queue", {
       ticket_id: ticketId,
       status: "pending",
       priority_tier,

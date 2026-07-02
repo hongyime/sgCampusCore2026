@@ -11,7 +11,7 @@ type TelegramPayload =
   | { chat_id: string; photo: string; caption: string };
 
 type FinalizeResult = {
-  id: Id<"_telegram_egress_queue">;
+  id: Id<"telegram_egress_queue">;
   success: boolean;
 };
 
@@ -137,7 +137,7 @@ export const workerB = internalAction({
 
     const outcomes = await Promise.allSettled(promises);
     
-    const results = outcomes.map((outcome, idx) => {
+    const results = outcomes.map((outcome, idx): FinalizeResult => {
       if (outcome.status === "fulfilled") {
         return outcome.value;
       } else {
