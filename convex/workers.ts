@@ -125,8 +125,11 @@ export const workerB = internalAction({
 
     if (batch.length === 0) return;
 
-    // Use Promise.allSettled with per-request 5s AbortSignals
-    const promises = batch.map(async (row) => {
+    // Use Promise.allSettled with per-request 5s AbortSignals.
+    // Local alias: claimBatch returns Doc<"telegram_egress_queue">[] at runtime;
+    // the generated `api` is currently AnyApi, so we narrow the callback param
+    // to the actual row shape without changing runtime behavior.
+    const promises = batch.map(async (row: Doc<"telegram_egress_queue">) => {
       const ticket = await ctx.runQuery(internal.queue.getTicket, { id: row.ticket_id });
       if (!ticket) {
         return { id: row._id, success: false };
