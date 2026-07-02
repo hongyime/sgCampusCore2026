@@ -28,3 +28,6 @@ convex/_generated/
 *.tsbuildinfo
 .DS_Store
 *.log
+
+# vercel — .vercel/ links a local checkout to a Vercel project; never commit
+.vercel
