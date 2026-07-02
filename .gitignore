@@ -19,6 +19,7 @@ next-env.d.ts
 
 # convex
 .convex/
+convex/_generated/
 
 # agent/runtime metadata
 .omo/

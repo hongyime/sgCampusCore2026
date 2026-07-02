@@ -15,6 +15,15 @@
 //    itself prove they are an authorized admin — see auth model decision in
 //    STATUS.md / WAITING_ON_HUMAN.md.
 
+// REGISTRY_SCHEMA_VERSION pins the shape of `SchoolEntry` so downstream forks
+// can detect a breaking upstream change with a single integer compare. Bump
+// rule: increment ONLY on a required-field removal, rename, or semantic
+// change (e.g., renaming `studentDomains` or changing what `code` means). Do
+// NOT increment for additive changes — new optional fields on `SchoolEntry`
+// or new entries in `SCHOOL_REGISTRY` are backward-compatible and keep the
+// version the same. See design.md § LLD-1 Step 4.
+export const REGISTRY_SCHEMA_VERSION = 1;
+
 export type SchoolCategory =
   | "autonomous_university"
   | "polytechnic"
@@ -25,9 +34,28 @@ export type SchoolCategory =
 export interface SchoolEntry {
   code: string; // stable short code used as CAMPUSCORE_SCHOOL_CODE
   name: string;
+  /**
+   * Optional compact display name (e.g. "SMU" for "Singapore Management
+   * University"). Additive, backward-compatible; consumers must not require
+   * this field to be set.
+   */
+  shortName?: string;
   category: SchoolCategory;
   studentDomains: string[]; // accepted for student reporters/volunteers
   staffDomains: string[]; // accepted as admin-eligible
+  /**
+   * Provenance of this entry's domain lists. Populated only when a human
+   * reviewer has independently confirmed the domains against the school's
+   * published IT documentation (see design.md § LLD-1 Step 1 and Requirement
+   * 1.6). Absence of this field on an entry means the entry is unverified;
+   * such an entry must also carry a `// verify` source comment until it is
+   * verified and this block is populated in the same pull request.
+   */
+  verified?: {
+    at: number; // Unix millisecond timestamp of the verification
+    by: string; // reviewer handle
+    source: string; // URL or IT-portal reference substantiating the domains
+  };
 }
 
 export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [

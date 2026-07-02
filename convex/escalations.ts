@@ -8,7 +8,7 @@ export const getActiveEscalations = query({
     // Note: In production this would verify the user is an admin.
     // Assuming dashboard-level auth restricts access to this component.
     const escalations = await ctx.db
-      .query("_critical_escalations")
+      .query("critical_escalations")
       .filter((q) => q.eq(q.field("acknowledged_at"), null))
       .collect();
       
@@ -30,7 +30,7 @@ export const getActiveEscalations = query({
 });
 
 export const acknowledgeEscalation = mutation({
-  args: { id: v.id("_critical_escalations") },
+  args: { id: v.id("critical_escalations") },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, {
       acknowledged_at: Date.now(),

@@ -67,7 +67,9 @@ export default defineSchema({
     .index("by_location", ["location_entity"]),
 
   // Egress queue (tech_design §5). One row per ticket awaiting broadcast.
-  _telegram_egress_queue: defineTable({
+  // NOTE: original design used `_telegram_egress_queue` but Convex reserves
+  // leading `_` for system tables. Renamed at Convex init time (Session 3).
+  telegram_egress_queue: defineTable({
     ticket_id: v.id("tickets"),
     status: v.union(
       v.literal("pending"),
@@ -100,7 +102,8 @@ export default defineSchema({
   // SLA breach). Written when a tier-1 ticket either dead-letters in the queue
   // or fails to reach status "sent" within the 60s SLA. Drives the dashboard
   // takeover + Resend email. Never silently dropped.
-  _critical_escalations: defineTable({
+  // Renamed from `_critical_escalations` to satisfy Convex naming rules.
+  critical_escalations: defineTable({
     ticket_id: v.id("tickets"),
     reason: v.union(v.literal("dead_letter"), v.literal("sla_breach")),
     created_at: v.number(),
@@ -108,8 +111,8 @@ export default defineSchema({
     acknowledged_at: v.optional(v.union(v.number(), v.null())),
   }).index("by_ticket", ["ticket_id"]),
 
-  // Resolutions (TASK-34 & TASK-35)
-  _resolutions: defineTable({
+  // Resolutions (TASK-34 & TASK-35). Renamed from `_resolutions`.
+  resolutions: defineTable({
     ticket_id: v.id("tickets"),
     resolver_id: v.string(), // Clerk User ID
     resolved_at: v.number(),

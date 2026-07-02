@@ -77,3 +77,41 @@
 
 ## Validation (tech_design §9)
 - [x] TASK-37: Run §9 pre-demo validation checklist; record results + open items in `STATUS.md`.
+
+## Session 3 — Unblock, Landing Page, First Real Deploy
+> Goal: turn "code exists" into "vercel deploy is green at sgcampuscore.hong-yi.me
+> with real Convex + Clerk + Telegram + Groq + Resend behind it, SMU-specialized
+> landing page at `/`, and a documented per-school fork path in the footer."
+> Preview Convex deploy key in use (`preview:hongyime:sgcampuscore|...`); a
+> production deploy key is a follow-up (see WAITING_ON_HUMAN.md).
+- [ ] TASK-41: Env reconciliation — populate `.env.local` (Next.js/Vercel) and
+      `.env.convex.local` (Convex) with real values (admin allowlist,
+      Telegram bot token, Convex preview deploy key). Write a
+      `DEPLOYMENT.md` section that clearly separates the Vercel env list from
+      the Convex env list and explains why they are distinct runtimes.
+- [ ] TASK-42: Convex project init — link the preview deploy key
+      (`preview:hongyime:sgcampuscore`), run `npx convex dev --once` to generate
+      `convex/_generated/*`, run `npx convex env set` for every Convex-side var
+      (CLERK_JWT_ISSUER_DOMAIN, TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET,
+      GROQ_API_KEY, LLM_BASE_URL, RESEND_API_KEY, CAMPUSCORE_SCHOOL_CODE,
+      CAMPUSCORE_ADMIN_ALLOWLIST, CSAM_SCAN_ENABLED). Verify `npx convex deploy`
+      pushes cleanly.
+- [ ] TASK-43: Clerk JWT template + Google provider — document the Clerk
+      dashboard steps in `WAITING_ON_HUMAN.md` (create JWT template named
+      `convex`, enable Google social connection). Verify `convex/auth.config.ts`
+      references the same template name.
+- [ ] TASK-44: SMU-specialized landing page at `/` — replace the placeholder
+      with SMU-branded hero, brief Report → Triage → Broadcast → Resolve tour,
+      primary CTAs (open public dashboard, sign in for admin/volunteer), and a
+      bottom "This is the CampusCore template — deploy it for your school"
+      section with GitHub fork icon + repo link. Working app routes
+      (`/dashboard`, `/volunteer`, `/admin`, `/api/*`) unchanged.
+- [ ] TASK-45: Local build green — `npm run typecheck && npm run lint &&
+      npm run build` all pass. Fix residual `@/convex/_generated/api` import
+      fallout after codegen exists.
+- [ ] TASK-46: Vercel deploy fix — diagnose current failing build at
+      `sgcampuscore.hong-yi.me`, document the exact Vercel env var list needed
+      (with which ones must be `NEXT_PUBLIC_*` vs server-only), push a commit
+      that gets the deployment green.
+- [ ] TASK-47: Session 3 STATUS.md + WAITING_ON_HUMAN.md update — record
+      Session 3 outcomes, open items, and the next-agent checklist.

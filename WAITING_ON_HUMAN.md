@@ -20,6 +20,42 @@
 - [ ] **Vercel** — project linkage + all env vars mirrored into the Vercel
       project settings.
 
+## Registry Domain Verification (multi-school-template-hardening, R1.6)
+
+> Autonomous agents cannot perform this verification — requires school IT
+> portal access or a current student account per design.md § LLD-1 Step 1.
+>
+> Each row below tracks one `SchoolEntry` in `config/schoolRegistry.ts`
+> whose `studentDomains` value is currently annotated `// verify`. A row is
+> closed only when: (a) the listed student domain is independently confirmed
+> against the school's published IT documentation (school IT portal or a
+> current student account at that school); AND (b) the closing pull request
+> removes the `// verify` comment on that entry in
+> `config/schoolRegistry.ts`; AND (c) the same PR adds a populated
+> `verified` block on that entry with `{ at, by, source }` per the
+> `SchoolEntry.verified` shape defined in design.md § Component 1 (added by
+> Task 1.2 of this spec).
+
+- [ ] **Singapore Institute of Technology (`sit`)** — current unverified
+      student domain: `singaporetech.edu.sg`. Close per the section
+      preamble above (independent confirmation + `// verify` removal + populated
+      `verified` block in the same PR).
+- [ ] **Singapore University of Social Sciences (`suss`)** — current
+      unverified student domain: `suss.edu.sg`. Close per the section
+      preamble above.
+- [ ] **Ngee Ann Polytechnic (`np`)** — current unverified student domain:
+      `student.np.edu.sg`. Close per the section preamble above.
+- [ ] **Singapore Polytechnic (`sp`)** — current unverified student domain:
+      `ichat.sp.edu.sg`. Close per the section preamble above.
+- [ ] **Temasek Polytechnic (`tp`)** — current unverified student domain:
+      `student.tp.edu.sg`. Close per the section preamble above.
+- [ ] **Nanyang Polytechnic (`nyp`)** — current unverified student domain:
+      `stu.nyp.edu.sg`. Close per the section preamble above.
+- [ ] **Republic Polytechnic (`rp`)** — current unverified student domain:
+      `myrp.edu.sg`. Close per the section preamble above.
+- [ ] **Institute of Technical Education (`ite`)** — current unverified
+      student domain: `ite.edu.sg`. Close per the section preamble above.
+
 ## Cloudflare Zone (dashboard-level, cannot be done from code)
 - [ ] **Orange-cloud (DNS proxy)** the image-upload endpoint so bytes actually
       transit Cloudflare's edge — the CSAM tool only inspects proxied traffic.

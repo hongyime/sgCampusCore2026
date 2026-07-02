@@ -40,8 +40,16 @@ export function getActiveSchool(): SchoolEntry {
 }
 
 function emailDomain(email: string): string {
-  const at = email.lastIndexOf("@");
-  return at === -1 ? "" : email.slice(at + 1).toLowerCase();
+  // Trim BEFORE slicing at the last `@` and BEFORE lowercasing so that a
+  // whitespace-padded JWT claim ("  staff@smu.edu.sg  ") normalizes to the
+  // same domain as its trimmed form. The `lastIndexOf("@")` (not `indexOf`)
+  // is deliberate: RFC 5321/5322 permit `@` inside a quoted local-part, and
+  // Clerk's parser splits on the last `@`. Aligning with Clerk keeps the
+  // middleware's Layer-2 predicate agreeing with the JWT issuer's Layer-1
+  // decision. See design.md § LLD-2 aggregate fix list, item 1.
+  const trimmed = email.trim();
+  const at = trimmed.lastIndexOf("@");
+  return at === -1 ? "" : trimmed.slice(at + 1).toLowerCase();
 }
 
 /** True if the email belongs to this school (student OR staff domain). */
@@ -77,7 +85,12 @@ export function getAdminAllowlist(): string[] {
  */
 export function isAdminEmail(email: string): boolean {
   if (!email) return false;
-  const normalized = email.toLowerCase();
+  // Trim BEFORE lowercasing so `normalized` matches the same
+  // trim-then-lowercase pipeline `getAdminAllowlist()` applies to each
+  // env-var token. Without the trim, a whitespace-padded JWT claim would
+  // slip past the allowlist's `.includes` comparison. See design.md § LLD-2
+  // table row: "Trim is currently absent. Fix: trim before lowercase."
+  const normalized = email.trim().toLowerCase();
   if (!isStaffEmail(normalized)) return false;
   return getAdminAllowlist().includes(normalized);
 }

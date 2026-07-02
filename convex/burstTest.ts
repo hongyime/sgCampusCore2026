@@ -33,7 +33,7 @@ export const seed50Tickets = internalMutation({
         llm_severity_score: priority_tier === 1 ? 9 : 2,
       });
 
-      await ctx.db.insert("_telegram_egress_queue", {
+      await ctx.db.insert("telegram_egress_queue", {
         ticket_id: ticketId,
         status: "pending",
         priority_tier,

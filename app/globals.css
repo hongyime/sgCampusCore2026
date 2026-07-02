@@ -308,3 +308,172 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Landing page (app/page.tsx) — namespaced `landing-*`.
+ * Added at end of file so nothing above is affected. Do not remove.
+ * ------------------------------------------------------------------------- */
+
+.landing-section {
+  margin-top: 48px;
+}
+
+.landing-section-title {
+  margin: 0 0 8px;
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  letter-spacing: -0.03em;
+}
+
+.landing-section-lead {
+  margin: 0 0 24px;
+  color: var(--muted);
+  max-width: 640px;
+  line-height: 1.6;
+}
+
+.landing-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.landing-step {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(17, 28, 51, 0.86);
+  padding: 24px;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.landing-step-index {
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.landing-step h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+}
+
+.landing-step p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.landing-trust-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.landing-trust-list li {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(17, 28, 51, 0.6);
+  padding: 20px 22px;
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.landing-trust-list strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.landing-teaser {
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: linear-gradient(
+      135deg,
+      rgba(56, 189, 248, 0.10),
+      rgba(56, 189, 248, 0)
+    ),
+    rgba(17, 28, 51, 0.86);
+  padding: clamp(24px, 4vw, 36px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.landing-teaser-title {
+  margin: 0;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  letter-spacing: -0.02em;
+}
+
+.landing-teaser-copy {
+  margin: 8px 0 0;
+  color: var(--muted);
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+/* Fork/attribution — distinct visual break: lighter panel, top divider. */
+.landing-fork {
+  margin-top: 64px;
+  padding: clamp(28px, 5vw, 44px);
+  border-top: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(248, 250, 252, 0.04);
+}
+
+.landing-fork-title {
+  margin: 0 0 8px;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  letter-spacing: -0.02em;
+}
+
+.landing-fork-copy {
+  margin: 0 0 20px;
+  color: var(--muted);
+  max-width: 640px;
+  line-height: 1.6;
+}
+
+.landing-fork-cta {
+  gap: 8px;
+}
+
+.landing-github-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+}
+
+.landing-footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.landing-footer p {
+  margin: 0 0 4px;
+}
+
+.landing-footer-meta {
+  opacity: 0.7;
+}
+
+@media (max-width: 480px) {
+  .landing-teaser {
+    align-items: flex-start;
+  }
+}
