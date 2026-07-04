@@ -29,12 +29,17 @@ export const createPairingToken = mutation({
       throw new Error("Institutional account for this school required");
     }
 
-    // Entropy floor: >=128 bits from Web Crypto CSPRNG. `crypto.randomUUID()`
-    // yields 122 bits from a v4 UUID (accepted lower bound per Requirement 5.4
-    // and design § LLD-3). Preferred alternative:
-    // `hexEncode(crypto.getRandomValues(new Uint8Array(16)))` for a clean 128
-    // bits. `Math.random` is explicitly forbidden.
-    const token = crypto.randomUUID().replace(/-/g, "");
+    // Entropy floor: 128 bits from Web Crypto CSPRNG. Uses
+    // `crypto.getRandomValues(new Uint8Array(16))` — 16 bytes = a clean
+    // 128 bits, no format bits reserved (design § LLD-3, Requirement 5.4).
+    // Migrated 2026-07-04 from the earlier `crypto.randomUUID().replace(/-/g, "")`
+    // form which yielded 122 bits from a v4 UUID (accepted lower bound;
+    // now superseded by this stronger form). `Math.random` is forbidden.
+    // Output shape unchanged: 32 lowercase hex characters, matches the
+    // pre-migration `^[0-9a-f]{32}$` invariant relied on by the pairings
+    // schema and every consumer that inspects a token literal.
+    const tokenBytes = crypto.getRandomValues(new Uint8Array(16));
+    const token = Array.from(tokenBytes, (b) => b.toString(16).padStart(2, "0")).join("");
     const now = Date.now();
     await ctx.db.insert("pairings", {
       token,
