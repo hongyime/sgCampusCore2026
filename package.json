@@ -13,7 +13,7 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "test:unit": "node --test config/**/*.test.mjs convex/**/*.test.mjs",
-    "test:pbt": "node --test config/**/*.property.test.mjs convex/**/*.property.test.mjs"
+    "test:pbt": "node --test --test-isolation=none config/**/*.property.test.mjs convex/**/*.property.test.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.0.0",

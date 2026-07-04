@@ -29,5 +29,10 @@ convex/_generated/
 .DS_Store
 *.log
 
+# spec-execution scratch artifacts (never commit — may contain Vercel
+# project metadata or PBT run stdout dumps; regenerated on demand)
+pbt-out.txt
+project-info.json
+
 # vercel — .vercel/ links a local checkout to a Vercel project; never commit
 .vercel
