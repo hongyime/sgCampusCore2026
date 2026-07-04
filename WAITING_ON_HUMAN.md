@@ -81,3 +81,31 @@
 - [ ] Confirm upload zone is genuinely orange-clouded (not just configured).
 - [ ] Send a real Resend test email to a CSOC-style inbox.
 - [ ] Confirm legal-escalation endpoint is the stub, not a real intake address.
+
+## Deferred Items from Multi-School Template Hardening (Session 4)
+
+- [ ] **128-bit token migration** — Task 1.4 was comment-only. Preferred
+      form is `hexEncode(crypto.getRandomValues(new Uint8Array(16)))` for a
+      clean 128 bits vs. the current `crypto.randomUUID().replace(/-/g, "")`
+      at 122 bits. Migration needs its own PBT run to prove no regression.
+      Deferred to a future spec.
+- [ ] **Dual-secret Telegram webhook variant (R9.3)** — comma-separated
+      `TELEGRAM_WEBHOOK_SECRETS` env with any-of match — eliminates the
+      propagation window during rotation. Design-documented in
+      DEPLOYMENT.md § Telegram Webhook Secret Rotation → Dual-secret
+      variant (deferred). Requires its own spec, code change to the webhook
+      handler, and security review.
+- [ ] **MOE school code granularity (R7.5)** — whether a specific JC or
+      secondary school sharing `students.edu.sg` warrants a per-school
+      entry distinguished by a school-owned identifier — open question
+      deferred. Framing in design.md § Open Questions item 5; ratified in
+      DEPLOYMENT.md § Registry Evolution Process → Open question deferred.
+- [ ] **P2/P3/P7 re-verification against real Convex harness** — the
+      current property tests run against `convex/pairing.testStub.mjs`
+      (in-memory serializable stub). A follow-up run against Convex's real
+      mutation harness (if/when it becomes available in a Node --test
+      compatible form) would strengthen the guarantees, particularly around
+      the serializability claim in the P2 single-use property. Not blocking
+      — the stub matches Convex's documented serializability semantics —
+      but worth a spec-scoped re-verify next time the Convex test SDK ships
+      something that fits `.mjs` runners without adding a devDep.

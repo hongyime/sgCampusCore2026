@@ -3,48 +3,58 @@
 > Overwritten at the end of every work session.
 > A stranger agent should be able to resume from this file in one read.
 
-## As of: Session 2 — local stabilization pass
+## As of: multi-school-template-hardening — Registry hardened, predicate audit closed, P1–P7 property tests green, per-school runbook appended to DEPLOYMENT.md.
 
 ### Done this session
 
-- Created a durable tracker at `C:\Users\bryan\AppData\Local\Temp\ulw-20260623-152122-nqf04e4q.md` and kept findings there for handoff.
-- Installed dependencies successfully in a local mirror at `C:\Users\bryan\AppData\Local\Temp\opencode\sgCampusCore2026-local`. Direct npm work on the UNC repo is unreliable because `cmd.exe` cannot run npm scripts from UNC paths and package extraction there was very slow/incomplete.
-- Wrote gitignored local env files in both the repo and local mirror:
-  - `.env.local` for Next/Vercel-facing values.
-  - `.env.convex.local` for Convex-side values.
-  - Git confirmed both files are ignored; do not stage or commit them.
-- Added visible Clerk auth controls via `components/AuthControls.tsx`.
-- Added no-Convex runtime guards so dashboard/takeover UI shows a setup state or no-ops instead of calling Convex hooks without a Convex provider.
-- Replaced the mocked dashboard user with real Clerk `useUser()` state.
-- Added Clerk's `"/__clerk/:path*"` matcher in `middleware.ts`.
-- Removed explicit `any`/suppression patterns from source paths checked by `rg`.
-- Made Resend escalation safer: it stays in stub/log mode unless `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and `RESEND_ESCALATION_TO` are all configured. No hardcoded live recipient remains.
-- Added `.omo/` to `.gitignore` so agent runtime metadata is not committed.
+- **Tasks 1.1–1.5 — foundation & documentation:**
+  - Pinned `fast-check@3.23.2` in `devDependencies` (no runtime deps added; approval gate under AGENTS.md respected).
+  - Extended `SchoolEntry` with additive fields and introduced `REGISTRY_SCHEMA_VERSION` so registry evolution is versioned rather than silently mutated.
+  - Documented the trim-before-lowercase normalization pipeline for all school-membership predicates (single canonical order, single source of truth).
+  - Added an entropy-floor comment on the pairing-token generator noting the current bit-width and the deferred preference for a 128-bit migration.
+  - Filed 8 rows in `WAITING_ON_HUMAN.md` covering each MOE-domain verification blocked by portal access.
+- **Tasks 2.1–2.3 — test scaffolding:**
+  - Added a Registry static-shape test that pins the exported shape and prevents accidental field removal.
+  - Added example-based predicate hardening tests covering the known-tricky inputs (whitespace, casing, empty, near-miss suffixes).
+  - Added an in-memory stub for the Convex mutation surface used by pairing-flow tests, avoiding a live Convex dependency in unit runs.
+- **Tasks 3.1–3.7 — property tests P1–P7 (all green):**
+  - P1 fail-closed admin predicate — unknown/malformed inputs never grant admin.
+  - P4 staff-domain necessary condition — a non-matching staff domain never satisfies the predicate.
+  - P5 case-insensitivity — canonicalization is stable under case perturbation of the input.
+  - P6 Registry uniqueness — no two `SchoolEntry` rows collide on the canonical identifier.
+  - P2 pairing single-use — a valid token cannot be redeemed twice.
+  - P3 pairing TTL — an expired token is rejected regardless of shape validity.
+  - P7 30-day gate one-shot — the re-verification gate fires at most once per window per user.
+- **Tasks 5.1–5.5 — DEPLOYMENT.md hardening (all append-only onto Session-3's file):**
+  - Fork-and-Adopt Runbook (per-school onboarding checklist).
+  - Admin Auth Lifecycle (grant/revoke/audit).
+  - Registry Evolution Process (schema-version bump + migration note).
+  - Telegram Webhook Rotation (rotation cadence and rollback).
+  - Data Isolation Boundary (what does and does not cross school tenants).
 
-### Validation evidence
+### Test evidence
 
-- `npm ci --no-audit --no-fund` in the local mirror: passed in 18s.
-- `npm run lint` in the local mirror: passed.
-- Explicit-any/suppression scan: passed for `app`, `components`, `convex`, and `middleware.ts`.
-- `lsp_diagnostics`: unavailable because the LSP MCP returned `Connection closed`; `lsp_status` reported `Not connected`.
-- `npm run typecheck`: blocked by missing `convex/_generated/*` files.
-- `npm run build`: blocked by missing `@/convex/_generated/api` imports in `app/dashboard/page.tsx`, `components/EmergencyTakeover.tsx`, and `app/api/upload/route.ts`.
+- `npm run test:unit` — exit 0, **80 tests / 80 pass / 0 fail**.
+- `npm run test:pbt` — exit 0, **27 tests / 27 pass / 0 fail**.
+- `npm run typecheck` — pre-existing UNC-path module-resolution errors only; **zero new errors** on files this spec created or modified.
+- `npm run lint` — exit 0 on real source paths (`config/`, `convex/`, `app/`, `components/`, `middleware.ts`). Pre-existing lint-config gap on `.omo/` scratch dir is a Session-3-era issue and out of scope.
+- `npm run build` — fails on the same UNC-path issue already documented in DEPLOYMENT.md's UNC caveat; no code path introduced by this spec is involved.
 
-### Current blocker
+### Open items carried forward
 
-Convex is not configured. `npx convex codegen` fails with `No CONVEX_DEPLOYMENT set`. The provided Convex value was tested as `CONVEX_DEPLOY_KEY` and rejected by the CLI. It was also tested through Convex access-token override and failed with insufficient service-account access.
+- 8 rows in `WAITING_ON_HUMAN.md` for Registry domain verification (`sit`, `suss`, `np`, `sp`, `tp`, `nyp`, `rp`, `ite`) — cannot be closed by an autonomous agent; requires school IT portal access.
+- Preferred 128-bit token migration deferred (Task 1.4 landed comment-only) — future spec.
+- Dual-secret webhook variant deferred per R9.3.
+- MOE school-code granularity open question deferred per R7.5.
 
-To unblock build/typecheck, a human must do one of these:
+### AGENTS.md invariant audit result
 
-1. Run interactive Convex setup from the repo: `npx convex dev` and complete login/project selection.
-2. Or provide a real project deploy key from Convex Project Settings as `CONVEX_DEPLOY_KEY`.
-
-After Convex is configured, run `npx convex dev --once` or `npx convex codegen`, commit `convex/_generated/`, then rerun `npm run typecheck && npm run lint && npm run build`.
-
-### Next agent checklist
-
-1. Do not read or print `.env*` contents. They contain real secrets.
-2. Preserve the hard constraints from `AGENTS.md`, `prd.md`, and `tech_design.md`: no client writes to `priority_tier`, no human image-review queue, legal escalation endpoint remains console-only, and do not change safety thresholds without approval.
-3. Get Convex codegen unblocked before attempting full build or browser QA.
-4. After generated files exist, validate from a local non-UNC mirror or use a mapped drive; avoid direct npm scripts from the UNC path.
-5. Stage only non-secret, intentional source/docs files. Do not stage `.env.local`, `.env.convex.local`, `node_modules`, `.next`, `.convex`, or `.omo`.
+- All 8 probes clean (Task 6 report). The following are unchanged this session:
+  - 60-second emergency SLA threshold.
+  - Reaper TTL and `retry_count` dead-letter threshold.
+  - Hazard lexicon word list.
+  - NSFW/violence confidence cutoff at 0.50.
+  - `priority_tier` remains server-owned (no client-mutation path added).
+  - No human image-review queue introduced.
+  - Legal-escalation endpoint remains a stub.
+- Dependency footprint: only `fast-check` added, and only to `devDependencies` (R11.1–R11.3, R11.5 satisfied).
