@@ -19,7 +19,14 @@ next-env.d.ts
 
 # convex
 .convex/
-convex/_generated/
+# NOTE: convex/_generated/ is INTENTIONALLY committed. Convex CLI v1.41
+# runs `--cmd 'next build'` BEFORE it regenerates convex/_generated/*, so on
+# a fresh Vercel clone the Next build cannot resolve @/convex/_generated/*
+# imports unless the files exist in git. This matches Convex's own guidance
+# in https://docs.convex.dev/cli/reference/codegen ("should be committed to
+# the repo"). Reverting this gitignore was a Task-23 (session-3) fix; the
+# corresponding Requirement 1.5 / 10.1 / Property 6 in the session-3 spec
+# need to be updated to reflect this reality — flagged for STATUS.md.
 
 # agent/runtime metadata
 .omo/
