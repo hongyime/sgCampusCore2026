@@ -322,10 +322,14 @@ to "the fork has a green Vercel Preview." Follow it top-to-bottom.
 1. **Confirm your school code exists.** Check the `SCHOOL_REGISTRY`
    export in `config/schoolRegistry.ts`. Currently supported codes
    (case-insensitive): `smu`, `nus`, `ntu`, `sutd`, `sit`, `suss`, `np`,
-   `sp`, `tp`, `nyp`, `rp`, `ite`, and `moe-school` (the generic Student
-   iCON entry). If your school is not listed, add a `SchoolEntry` in the
-   same PR and populate `studentDomains` and `staffDomains` from the
-   school's own IT documentation.
+   `sp`, `tp`, `nyp`, `rp`, `ite`. The Registry is deliberately restricted
+   to institutions whose canonical student subdomain uniquely identifies
+   the school; MOE-tier schools (primary / secondary / JC) sharing the
+   Student iCON `students.edu.sg` domain are out of scope for this
+   template (see the design.md § Open Questions item 5 framing). If your
+   school is not listed AND has its own unique student subdomain, add a
+   `SchoolEntry` in the same PR and populate `studentDomains` and
+   `staffDomains` from the school's own IT documentation.
 2. **Verify the student subdomain.** Several entries in
    `SCHOOL_REGISTRY` carry a `// verify` comment on `studentDomains`
    because the exact subdomain drifts and could not be independently
@@ -917,32 +921,25 @@ Admin_Predicate and the Member_Predicate delegate to it. This is the
 mechanism by which one shared Registry safely serves N per-school
 deployments without any cross-tenant coupling at runtime.
 
-### Open question deferred: MOE school code granularity
+### MOE-tier schools: out of scope (resolved 2026-07-04)
 
-The Registry currently carries one generic `moe-school` entry covering
-all MOE schools that share `students.edu.sg` as their student mail
-subdomain. If a specific junior college or secondary school inside that
-umbrella wants to deploy CampusCore with its own identity — its own
-`CAMPUSCORE_SCHOOL_CODE`, its own admin allowlist, its own display name
-in the promo landing — the correct shape of that entry is **deferred to
-a future spec** rather than settled here.
+Earlier drafts of this template carried a generic `moe-school` Registry
+entry covering all MOE primary / secondary / JC students who share
+`@students.edu.sg`. That entry has been **removed** by the Session 4
+product decision: the Registry is restricted to institutions whose
+canonical student subdomain uniquely identifies the school. Two schools
+sharing `@students.edu.sg` cannot be told apart at the JWT layer, and
+the pilot has no downstream identity gate that could disambiguate them
+without a new privacy-sensitive design (see design.md § Open Questions
+item 5 for the framing of the three candidate approaches that a future
+spec would have to pick between).
 
-The open question is whether a per-school entry that shares
-`students.edu.sg` with the generic `moe-school` row should be
-distinguished by a school-owned identifier (for example a school-code
-column keyed off the MOE school-code registry), and if so, where that
-identifier is checked (Clerk claim, JWT template, or a Convex-side
-lookup). Each of the three checking sites has different trust and
-latency properties, and the decision affects the Auth Model in ways
-that warrant their own requirements phase. See
-`.kiro/specs/multi-school-template-hardening/design.md § Open Questions`
-item 5 for the framing of the deferral.
-
-Until that follow-up spec lands, an MOE junior college or secondary
-school that wants to pilot CampusCore deploys against the generic
-`moe-school` entry and accepts that its admin allowlist and dashboard
-identity are shared with any other MOE school piloting under the same
-code. This is a knowingly-taken limitation, not an oversight.
+**Effect on this template:** if you are running CampusCore for an MOE
+primary school, secondary school, or junior college whose students use
+`@students.edu.sg`, this fork does not yet support you as a distinct
+tenant. Do not deploy against `moe-school` — the entry no longer exists.
+Framing preserved in design.md § Open Questions item 5 in case a future
+spec revisits the question.
 
 ## Telegram Webhook Secret Rotation
 
@@ -959,14 +956,47 @@ code. This is a knowingly-taken limitation, not an oversight.
 > secret over, plus the deferred dual-secret refinement that would
 > eliminate the rotation-window rejection entirely.
 
-### Single-secret rotation sequence
+### Automated rotation (GitHub Actions, monthly)
 
-Rotation is a five-step operation that MUST be executed in the order
-below. `S_old` is the current value of `TELEGRAM_WEBHOOK_SECRET` on the
-Convex side; `S_new` is the fresh value being installed. No real bot
-token appears in any command below — the token in step 2 is elided
-because it lives only in the Convex env and in a password manager, and
-this document is not the source of truth for it.
+The primary rotation path is now the GitHub Actions workflow at
+`.github/workflows/rotate-telegram-webhook-secret.yml`. It runs on the
+first of every month at 03:15 UTC (11:15 SGT), and can also be triggered
+manually from the Actions tab (`workflow_dispatch`) — including a
+`dry_run: true` option that generates a new secret and logs actions
+without touching Telegram or Convex, for pre-arm smoke testing.
+
+Arming the workflow requires three repository secrets (Settings →
+Secrets and variables → Actions) plus one repository variable:
+
+| Setting | Type | Purpose |
+|---------|------|---------|
+| `TELEGRAM_BOT_TOKEN` | Secret | The bot's API token; same value as in the Convex env. |
+| `CONVEX_DEPLOY_KEY` | Secret | A Convex production deploy key (`prod:` prefix) with permission to run `npx convex env set`. |
+| `CONVEX_WEBHOOK_URL` | Secret | The full webhook URL (`https://<deployment>.convex.site/telegram/webhook`). |
+| `TELEGRAM_ROTATION_ENABLED` | Variable | Set to `true` to arm. Unset or any other value = disarmed (workflow runs but no-ops with a clear message). |
+
+Until `TELEGRAM_ROTATION_ENABLED=true` is set, the workflow is a
+no-op — you can land the workflow file, land the secrets, then flip
+the variable to `true` once you are ready. Missing any of the three
+secrets also disarms the workflow, with a diagnostic line in the
+workflow log identifying which one is missing.
+
+The workflow performs the five-step manual procedure below (generate →
+setWebhook → convex env set → propagation wait → verify) with the new
+secret registered as a masked GitHub Actions output so it never appears
+in logs.
+
+### Manual rotation (fallback / emergency)
+
+If the automated workflow is disarmed, misconfigured, or has been
+disabled for some reason, the manual procedure below is the same
+five-step operation executed by hand. Prefer the automated path in
+normal operation. `S_old` is the current value of
+`TELEGRAM_WEBHOOK_SECRET` on the Convex side; `S_new` is the fresh
+value being installed. No real bot token appears in any command
+below — the token in step 2 is elided because it lives only in the
+Convex env and in a password manager, and this document is not the
+source of truth for it.
 
 1. Generate a fresh, cryptographically-random secret on the operator's
    workstation:

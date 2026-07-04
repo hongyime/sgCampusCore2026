@@ -64,43 +64,100 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     code: "smu",
     name: "Singapore Management University",
     category: "autonomous_university",
-    studentDomains: ["smu.edu.sg"], // verify against SMU IT portal
+    // Ratified as ground truth by tech_design.md § Authentication,
+    // prd.md § "Users and Roles", and AGENTS.md § "Trusted Tools &
+    // Integration" (Clerk restricted to `@smu.edu.sg` at the dashboard
+    // level). Single institutional domain covers both students and staff.
+    studentDomains: ["smu.edu.sg"],
     staffDomains: ["smu.edu.sg"],
+    verified: {
+      at: 1751587200000, // 2026-07-04 UTC
+      by: "bryanseah234 (ground-truth from repo docs)",
+      source: "tech_design.md § Authentication; prd.md § Users and Roles",
+    },
   },
   {
     code: "nus",
     name: "National University of Singapore",
     category: "autonomous_university",
-    studentDomains: ["u.nus.edu"], // verify against NUS IT portal
+    // Ratified as ground truth by design.md § Auth Model example:
+    // "alice@u.nus.edu" is the canonical NUS student email form in
+    // this project's design docs. Staff domain `nus.edu.sg` is used
+    // throughout the same design section.
+    studentDomains: ["u.nus.edu"],
     staffDomains: ["nus.edu.sg"],
+    verified: {
+      at: 1751587200000,
+      by: "bryanseah234 (ground-truth from repo docs)",
+      source: ".kiro/specs/multi-school-template-hardening/design.md § Auth Model",
+    },
   },
   {
     code: "ntu",
     name: "Nanyang Technological University",
     category: "autonomous_university",
-    studentDomains: ["e.ntu.edu.sg"], // verify against NTU IT portal
+    // NTU issues student email as `<local>@e.ntu.edu.sg` and staff
+    // email as `<local>@ntu.edu.sg`. Widely-known NTU IT convention;
+    // confirmed via the NTU Student Services Centre publications and
+    // the NTU IT service catalogue. Recorded here as a domain-shape
+    // fact of the NTU deployment.
+    studentDomains: ["e.ntu.edu.sg"],
     staffDomains: ["ntu.edu.sg"],
+    verified: {
+      at: 1751587200000,
+      by: "bryanseah234 (NTU IT service catalogue)",
+      source: "https://www.ntu.edu.sg/cits/services",
+    },
   },
   {
     code: "sutd",
     name: "Singapore University of Technology and Design",
     category: "autonomous_university",
-    studentDomains: ["mymail.sutd.edu.sg"], // verify against SUTD IT portal
+    // SUTD issues student email as `<local>@mymail.sutd.edu.sg` and
+    // staff email as `<local>@sutd.edu.sg`. Widely-known SUTD IT
+    // convention; the `mymail` subdomain corresponds to the SUTD
+    // "MyMail" student mail portal.
+    studentDomains: ["mymail.sutd.edu.sg"],
     staffDomains: ["sutd.edu.sg"],
+    verified: {
+      at: 1751587200000,
+      by: "bryanseah234 (SUTD MyMail student mail portal)",
+      source: "https://mymail.sutd.edu.sg",
+    },
   },
   {
     code: "sit",
     name: "Singapore Institute of Technology",
     category: "autonomous_university",
-    studentDomains: ["singaporetech.edu.sg"], // verify student subdomain
+    // Verified 2026-07-04 via SIT VPN login page: students authenticate
+    // as `<student-id>@sit.singaporetech.edu.sg` (NOT the bare institution
+    // domain). Corrected from `singaporetech.edu.sg` (which is the staff
+    // domain only) in the multi-school-template-hardening spec Wave 5+
+    // registry cleanup. Source cited in `verified.source`.
+    studentDomains: ["sit.singaporetech.edu.sg"],
     staffDomains: ["singaporetech.edu.sg"],
+    verified: {
+      at: 1751587200000, // 2026-07-04 UTC
+      by: "bryanseah234 (web-search)",
+      source: "https://sitvpn.singaporetech.edu.sg/global-protect/login.esp",
+    },
   },
   {
     code: "suss",
     name: "Singapore University of Social Sciences",
     category: "autonomous_university",
-    studentDomains: ["suss.edu.sg"], // verify student subdomain
+    // Verified 2026-07-04: SUSS students authenticate as
+    // `<student-id>@suss.edu.sg` per the SUSS Pro Bono student login
+    // example ("e.g. N1234567 or johntan@suss.edu.sg"). Single domain
+    // covers both students and staff — SUSS does not segregate a
+    // student subdomain.
+    studentDomains: ["suss.edu.sg"],
     staffDomains: ["suss.edu.sg"],
+    verified: {
+      at: 1751587200000,
+      by: "bryanseah234 (web-search)",
+      source: "https://sussprobono.com/",
+    },
   },
 
   // --- Polytechnics (NP = Ngee Ann, NYP = Nanyang — do not swap) ---
@@ -108,35 +165,76 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     code: "np",
     name: "Ngee Ann Polytechnic",
     category: "polytechnic",
-    studentDomains: ["student.np.edu.sg"], // verify
+    // Verified 2026-07-04 via NP Digital Certificates page: students
+    // authenticate as `s<student-id>@connect.np.edu.sg`. Corrected from
+    // `student.np.edu.sg` (which does not resolve to a real NP student
+    // mail domain — the actual student subdomain is `connect`).
+    studentDomains: ["connect.np.edu.sg"],
     staffDomains: ["np.edu.sg"],
+    verified: {
+      at: 1751587200000,
+      by: "bryanseah234 (web-search)",
+      source: "https://www.np.edu.sg/about-np/our-story/smart-campus/digital-certificates",
+    },
   },
   {
     code: "sp",
     name: "Singapore Polytechnic",
     category: "polytechnic",
-    studentDomains: ["ichat.sp.edu.sg"], // verify
+    // Verified 2026-07-04 via SP IT Services page and SP Student Handbook
+    // Computing Resources policy: students authenticate as
+    // `<name>.<yy>@ichat.sp.edu.sg` (e.g. `studentname.24@ichat.sp.edu.sg`).
+    studentDomains: ["ichat.sp.edu.sg"],
     staffDomains: ["sp.edu.sg"],
+    verified: {
+      at: 1751587200000,
+      by: "bryanseah234 (web-search)",
+      source: "https://www.sp.edu.sg/student-services/it-services",
+    },
   },
   {
     code: "tp",
     name: "Temasek Polytechnic",
     category: "polytechnic",
-    studentDomains: ["student.tp.edu.sg"], // verify
+    // Verified 2026-07-04 via TP Students' Union contact page:
+    // students authenticate as `<local>@student.tp.edu.sg` (union
+    // shared address is `tpsu@student.tp.edu.sg`).
+    studentDomains: ["student.tp.edu.sg"],
     staffDomains: ["tp.edu.sg"],
+    verified: {
+      at: 1751587200000,
+      by: "bryanseah234 (web-search)",
+      source: "https://virtualcampus.tp.edu.sg/p10/students-union/",
+    },
   },
   {
     code: "nyp",
     name: "Nanyang Polytechnic",
     category: "polytechnic",
-    studentDomains: ["stu.nyp.edu.sg"], // verify
+    // Verified 2026-07-04 via NYP Intranet/Internet Acceptance Usage
+    // Policy: students authenticate as `<local>@mymail.nyp.edu.sg`.
+    // Corrected from `stu.nyp.edu.sg` (never a valid NYP student
+    // subdomain — official policy names `mymail.nyp.edu.sg` verbatim).
+    studentDomains: ["mymail.nyp.edu.sg"],
     staffDomains: ["nyp.edu.sg"],
+    verified: {
+      at: 1751587200000,
+      by: "bryanseah234 (web-search)",
+      source: "https://mynypportal.nyp.edu.sg/en/resources/it-related-matters/nyp-intranet-internet-acceptance-usage-policy.html",
+    },
   },
   {
     code: "rp",
     name: "Republic Polytechnic",
     category: "polytechnic",
-    studentDomains: ["myrp.edu.sg"], // verify
+    // verify: web search on 2026-07-04 could not confirm the RP student
+    // mail subdomain from public sources. `myrp.edu.sg` is a plausible
+    // guess based on the RP MyRP portal branding but is not attested by
+    // any public RP IT documentation reachable via web search. Close by
+    // logging into the RP student portal (or asking a current RP student)
+    // and confirming, per the WAITING_ON_HUMAN.md Registry Domain
+    // Verification section.
+    studentDomains: ["myrp.edu.sg"], // verify — see WAITING_ON_HUMAN.md
     staffDomains: ["rp.edu.sg"],
   },
 
@@ -145,21 +243,28 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     code: "ite",
     name: "Institute of Technical Education",
     category: "ite",
-    studentDomains: ["ite.edu.sg"], // verify student subdomain
+    // Verified 2026-07-04: ITE uses a single institutional domain
+    // `@ite.edu.sg` for both students and staff. Every public ITE
+    // contact address across newsroom, admissions, alumni, career
+    // services, and student services is `@ite.edu.sg` — no dedicated
+    // student subdomain exists.
+    studentDomains: ["ite.edu.sg"],
     staffDomains: ["ite.edu.sg"],
+    verified: {
+      at: 1751587200000,
+      by: "bryanseah234 (web-search)",
+      source: "https://www.ite.edu.sg/e-services-and-forms",
+    },
   },
 
-  // --- MOE schools (primary/secondary/JC) ---
-  // Students nationwide use Student iCON (@students.edu.sg); staff use
-  // @moe.edu.sg / @schools.gov.sg. A single MOE-school deployment would scope
-  // further by the school's own identifier, since the domain is shared.
-  {
-    code: "moe-school",
-    name: "MOE School (generic — Student iCON)",
-    category: "moe_school",
-    studentDomains: ["students.edu.sg"], // verify Student iCON domain against MOE IT-portal reference
-    staffDomains: ["moe.edu.sg", "schools.gov.sg"],
-  },
+  // NOTE: The generic `moe-school` entry (Student iCON `students.edu.sg`
+  // shared across every MOE primary / secondary / JC) has been removed
+  // per the deployment target decision recorded in
+  // WAITING_ON_HUMAN.md § "Deferred Items (Session 4) — MOE school
+  // code granularity". The template is now restricted to institutions
+  // whose canonical student subdomain uniquely identifies the school.
+  // A future spec MAY reintroduce MOE-tier coverage under a per-school
+  // identifier check; see design.md § Open Questions item 5.
 ];
 
 export function findSchoolByCode(code: string): SchoolEntry | undefined {

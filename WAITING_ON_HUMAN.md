@@ -36,25 +36,54 @@
 > `SchoolEntry.verified` shape defined in design.md § Component 1 (added by
 > Task 1.2 of this spec).
 
-- [ ] **Singapore Institute of Technology (`sit`)** — current unverified
-      student domain: `singaporetech.edu.sg`. Close per the section
-      preamble above (independent confirmation + `// verify` removal + populated
-      `verified` block in the same PR).
-- [ ] **Singapore University of Social Sciences (`suss`)** — current
-      unverified student domain: `suss.edu.sg`. Close per the section
-      preamble above.
-- [ ] **Ngee Ann Polytechnic (`np`)** — current unverified student domain:
-      `student.np.edu.sg`. Close per the section preamble above.
-- [ ] **Singapore Polytechnic (`sp`)** — current unverified student domain:
-      `ichat.sp.edu.sg`. Close per the section preamble above.
-- [ ] **Temasek Polytechnic (`tp`)** — current unverified student domain:
-      `student.tp.edu.sg`. Close per the section preamble above.
-- [ ] **Nanyang Polytechnic (`nyp`)** — current unverified student domain:
-      `stu.nyp.edu.sg`. Close per the section preamble above.
-- [ ] **Republic Polytechnic (`rp`)** — current unverified student domain:
-      `myrp.edu.sg`. Close per the section preamble above.
-- [ ] **Institute of Technical Education (`ite`)** — current unverified
-      student domain: `ite.edu.sg`. Close per the section preamble above.
+> **2026-07-04 update (Session 4 Wave 6):** Web-search-based verification
+> closed 7 of the original 8 rows. Three of them (`sit`, `np`, `nyp`) had
+> the WRONG student domain in the Registry and would have broken real
+> student sign-ins in production — the corrections are now landed with
+> populated `verified` blocks. Four (`suss`, `sp`, `tp`, `ite`) were
+> already correct and now carry `verified` blocks citing the source URLs
+> below. Only `rp` remains genuinely unconfirmable via public web sources
+> and stays open.
+
+- [x] **Singapore Institute of Technology (`sit`)** — CORRECTED from
+      `singaporetech.edu.sg` (the staff-only domain) to
+      `sit.singaporetech.edu.sg` (the student subdomain), per the SIT VPN
+      login page which specifies `<student-id>@sit.singaporetech.edu.sg`.
+      Source: <https://sitvpn.singaporetech.edu.sg/global-protect/login.esp>.
+- [x] **Singapore University of Social Sciences (`suss`)** — confirmed
+      `suss.edu.sg` (single institutional domain for both students and
+      staff). Source: <https://sussprobono.com/> (student login example
+      `johntan@suss.edu.sg`).
+- [x] **Ngee Ann Polytechnic (`np`)** — CORRECTED from `student.np.edu.sg`
+      to `connect.np.edu.sg`, per the NP Digital Certificates page which
+      cites `s<student-id>@connect.np.edu.sg` as the student mail form.
+      Source: <https://www.np.edu.sg/about-np/our-story/smart-campus/digital-certificates>.
+- [x] **Singapore Polytechnic (`sp`)** — confirmed `ichat.sp.edu.sg`, per
+      SP IT Services page (`studentname.24@ichat.sp.edu.sg`) and the
+      SP Student Handbook Computing Resources policy.
+      Source: <https://www.sp.edu.sg/student-services/it-services>.
+- [x] **Temasek Polytechnic (`tp`)** — confirmed `student.tp.edu.sg`, per
+      TP Students' Union contact address `tpsu@student.tp.edu.sg`.
+      Source: <https://virtualcampus.tp.edu.sg/p10/students-union/>.
+- [x] **Nanyang Polytechnic (`nyp`)** — CORRECTED from `stu.nyp.edu.sg`
+      (never a valid NYP subdomain) to `mymail.nyp.edu.sg`, per the NYP
+      Intranet/Internet Acceptance Usage Policy which specifies
+      `@mymail.nyp.edu.sg` verbatim as the official student mail domain.
+      Source: <https://mynypportal.nyp.edu.sg/en/resources/it-related-matters/nyp-intranet-internet-acceptance-usage-policy.html>.
+- [ ] **Republic Polytechnic (`rp`)** — REMAINS OPEN. Web search on
+      2026-07-04 could not confirm the RP student mail subdomain from any
+      public source. `myrp.edu.sg` (the current guess) is plausible from
+      the "MyRP" portal branding but is not attested by any RP IT
+      documentation reachable via web search. Close by logging into the
+      RP student portal (or asking a current RP student) and confirming
+      the student mail domain; if it differs, correct
+      `config/schoolRegistry.ts` and populate the `verified` block per
+      the section preamble above.
+- [x] **Institute of Technical Education (`ite`)** — confirmed `ite.edu.sg`
+      (single institutional domain, no dedicated student subdomain). Every
+      public ITE contact address across newsroom, admissions, alumni,
+      career services, and student services resolves to `@ite.edu.sg`.
+      Source: <https://www.ite.edu.sg/e-services-and-forms>.
 
 ## Cloudflare Zone (dashboard-level, cannot be done from code)
 - [ ] **Orange-cloud (DNS proxy)** the image-upload endpoint so bytes actually
@@ -95,17 +124,26 @@
       DEPLOYMENT.md § Telegram Webhook Secret Rotation → Dual-secret
       variant (deferred). Requires its own spec, code change to the webhook
       handler, and security review.
-- [ ] **MOE school code granularity (R7.5)** — whether a specific JC or
-      secondary school sharing `students.edu.sg` warrants a per-school
-      entry distinguished by a school-owned identifier — open question
-      deferred. Framing in design.md § Open Questions item 5; ratified in
-      DEPLOYMENT.md § Registry Evolution Process → Open question deferred.
-- [ ] **P2/P3/P7 re-verification against real Convex harness** — the
-      current property tests run against `convex/pairing.testStub.mjs`
-      (in-memory serializable stub). A follow-up run against Convex's real
-      mutation harness (if/when it becomes available in a Node --test
-      compatible form) would strengthen the guarantees, particularly around
-      the serializability claim in the P2 single-use property. Not blocking
-      — the stub matches Convex's documented serializability semantics —
-      but worth a spec-scoped re-verify next time the Convex test SDK ships
-      something that fits `.mjs` runners without adding a devDep.
+- [x] **MOE school code granularity (R7.5)** — RESOLVED 2026-07-04 by
+      product decision: MOE-tier schools (primary / secondary / JC) are
+      NOT a target deployment. The generic `moe-school` Registry entry
+      has been REMOVED. The Registry is now restricted to institutions
+      whose canonical student subdomain uniquely identifies the school
+      (a hard prerequisite for the pilot). A future spec MAY reintroduce
+      MOE-tier coverage under a per-school identifier check; framing
+      preserved in design.md § Open Questions item 5 and DEPLOYMENT.md
+      § Registry Evolution Process → Open question deferred.
+- [ ] **P2/P3/P7 re-verification against real Convex harness** —
+      BLOCKED ON UPSTREAM. Verified 2026-07-04 via the Convex Testing
+      docs (<https://docs.convex.dev/testing/functions>): `convex-test`
+      is Vitest-locked ("Use the convex-test library to test your
+      functions in JS via the excellent Vitest testing framework"), and
+      re-tooling the CampusCore PBT suite around Vitest would require
+      adding Vitest as a devDependency — an AGENTS.md § "Approval
+      Checkpoints" trigger. The current mirror-plus-stub approach
+      (`convex/pairing.testStub.mjs` + inline handler mirrors + drift
+      guards) is defensible: the stub enforces the same serializability
+      contract Convex documents and the drift guards detect any handler
+      change that could invalidate the mirror. Recheck in a future
+      session if Convex ships a runner-agnostic testing harness.
+      Source: <https://docs.convex.dev/testing/functions>.
