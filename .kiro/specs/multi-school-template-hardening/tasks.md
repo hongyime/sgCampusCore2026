@@ -356,7 +356,7 @@ to each school's IT portal or a current student account. Those tasks produce
     the entropy-comment edit.
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Extend `DEPLOYMENT.md` with per-school hardening runbooks (append-only onto Session-3's file)
+- [x] 5. Extend `DEPLOYMENT.md` with per-school hardening runbooks (append-only onto Session-3's file)
   - [x] 5.1 Append the Fork-and-Adopt Runbook section (R8)
     - Insert as a new top-level `## Fork-and-Adopt Runbook (per-school
       operator handoff)` section after Session-3's DEPLOYMENT.md ends
@@ -424,7 +424,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
     - _Design: § LLD-9_
 
-  - [ ] 5.3 Append the Registry Evolution Process section (R7)
+  - [x] 5.3 Append the Registry Evolution Process section (R7)
     - New section `## Registry Evolution Process (adding / updating / no
       runtime override)` after §5.2.
     - Content (mirrors § LLD-8):
@@ -455,7 +455,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
     - _Design: § LLD-8, § Error Scenario 4_
 
-  - [ ] 5.4 Append the Telegram Webhook Rotation Process section (R9)
+  - [x] 5.4 Append the Telegram Webhook Rotation Process section (R9)
     - New section `## Telegram Webhook Secret Rotation` after §5.3.
     - Content (mirrors § LLD-6):
       - **Single-secret rotation sequence** (5 steps): (a) generate
@@ -480,7 +480,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Requirements: 9.1, 9.2, 9.3, 9.4_
     - _Design: § LLD-6, § Security Considerations_
 
-  - [ ] 5.5 Append the Data Isolation Boundary invariant section (R10)
+  - [x] 5.5 Append the Data Isolation Boundary invariant section (R10)
     - New section `## Data Isolation Boundary (one deployment per school)`
       after §5.4.
     - Content (mirrors § LLD-10 and § Deployment Topology):
@@ -503,7 +503,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Requirements: 10.1, 10.2, 10.3, 10.4_
     - _Design: § Deployment Topology, § Data Models, § LLD-10_
 
-- [ ] 6. Final checkpoint — Full-suite verification and AGENTS.md invariant audit
+- [x] 6. Final checkpoint — Full-suite verification and AGENTS.md invariant audit
   - Re-run `npm run test:unit && npm run test:pbt && npm run typecheck &&
     npm run lint && npm run build` from the Local_Mirror. All must exit 0.
   - Grep the diff for any change to the reaper TTL, `retry_count`,
@@ -516,8 +516,8 @@ to each school's IT portal or a current student account. Those tasks produce
     no other dependency touched (R11.3).
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 7. Session close — hygiene updates
-  - [ ] 7.1 Overwrite `STATUS.md` with the hardening session's outcomes
+- [x] 7. Session close — hygiene updates
+  - [x] 7.1 Overwrite `STATUS.md` with the hardening session's outcomes
     - Overwrite per file convention: "As of: multi-school-template-
       hardening — Registry hardened, predicate audit closed, P1–P7
       property tests green, per-school runbook appended to
@@ -528,7 +528,7 @@ to each school's IT portal or a current student account. Those tasks produce
       any AGENTS.md-invariant items reviewed and confirmed unchanged.
     - _Requirements: (session hygiene; supports 11.2 audit trail)_
 
-  - [ ] 7.2 Append to `WAITING_ON_HUMAN.md` any residuals from this session
+  - [x] 7.2 Append to `WAITING_ON_HUMAN.md` any residuals from this session
     - Append at the bottom of the file (do NOT touch the 8-row
       section from Task 1.5): items that remain open at session close
       — e.g., migration to the preferred 128-bit token form (deferred
@@ -539,7 +539,7 @@ to each school's IT portal or a current student account. Those tasks produce
       those belong to their owning specs.
     - _Requirements: 9.3, 7.5_
 
-  - [ ] 7.3 Add and tick new TASK-N rows in root `TASKS.md` for this spec
+  - [x] 7.3 Add and tick new TASK-N rows in root `TASKS.md` for this spec
     - Append a new `## Multi-School Template Hardening (Session 4)`
       section at the bottom of `x:\01 REPOSITORIES\sgCampusCore2026\TASKS.md`
       (after the "Session 3" section).

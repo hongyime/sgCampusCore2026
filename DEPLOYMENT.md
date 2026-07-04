@@ -815,3 +815,409 @@ Troubleshooting above and the `Next.js + Convex (mirrored)` row for
 `CAMPUSCORE_ADMIN_ALLOWLIST` in the
 [Environment variable reference table](#environment-variable-reference-table)
 of the Fork-and-Adopt Runbook.
+
+## Registry Evolution Process (adding / updating / no runtime override)
+
+> This section is the operational procedure for changing
+> `config/schoolRegistry.ts` — the trust anchor used by both layers of
+> the two-layer domain restriction. It mirrors the design in
+> `.kiro/specs/multi-school-template-hardening/design.md § LLD-8` and
+> ratifies the Session-1 decision that the Registry is compile-time
+> data with no runtime override surface. All changes flow through an
+> upstream PR; downstream forks receive them via periodic pull.
+
+### Adding a new school
+
+Onboarding a new institution is an **upstream PR against the shared
+codebase**, not a per-fork operation. The PR MUST arrive with the entry
+already verified — an unverified entry is a `// verify` placeholder,
+not a shippable Registry row.
+
+1. Add a `SchoolEntry` to `SCHOOL_REGISTRY` in
+   `config/schoolRegistry.ts` with the school's `code`, `name`,
+   `studentDomains`, and `staffDomains` populated from that school's
+   own IT documentation.
+2. Populate the `verified` block with the source URLs consulted
+   (typically the school's IT portal or student handbook) and the
+   reviewer's handle, so a future maintainer can retrace the audit
+   without re-doing it.
+3. Run `npm run test:unit` and `npm run test:pbt` locally. Both suites
+   cover the Registry static shape test (uniqueness of `code`, lowercase
+   non-`@` domain shape, `verified`-block-or-`// verify`-comment
+   presence, `REGISTRY_SCHEMA_VERSION` sanity) and the P6 uniqueness
+   property test. Both MUST exit 0 before the PR is opened.
+4. Open the PR against upstream. Reviewer independently confirms the
+   domains against the same public IT documentation cited in the
+   `verified.source` field before merging.
+
+No fork-only Registry addition is required for a school that follows
+this path — once the upstream PR lands, every downstream deployment
+receives the entry on its next upstream pull.
+
+### Updating an existing school's domain
+
+Domain changes (a school's IT migrates the student subdomain, a new
+staff subdomain is added, a legacy domain is retired) follow the same
+upstream-PR flow as adding a new school. The Registry is intentionally
+**additive**: a new domain is appended to the appropriate array, and
+the previous domain is retained for a documented grace period so
+already-verified accounts do not lose access mid-term.
+
+1. Open an upstream PR that appends the new domain to the appropriate
+   array — `studentDomains` for a student subdomain change,
+   `staffDomains` for a staff subdomain change.
+2. Retain the previous domain in the same array with a source comment
+   marking the retirement date, for example
+   `// deprecated: retire after 2027-01-01`. The date is the school's
+   own retirement date, not an arbitrary internal deadline.
+3. Refresh the entry's `verified.at` timestamp and `verified.by`
+   reviewer handle to reflect the audit for this change.
+4. Retire the deprecated domain in a subsequent PR only when the school
+   has explicitly announced that the old subdomain no longer accepts
+   mail. Removing a domain before that point strands existing paired
+   accounts on the next 30-day re-verification cycle — see
+   `.kiro/specs/multi-school-template-hardening/design.md § Error Scenario 4`
+   for the recovery path and the reasoning behind the grace-period
+   convention.
+
+### Runtime override: none
+
+There SHALL be no environment variable, no configuration file, and no
+runtime mutation that patches Registry contents at deploy time. The
+Registry is compile-time data by design — a runtime override surface
+would create a bypass for the entire two-layer domain restriction, and
+the audit trail for a domain change would move from git history (where
+every reviewer can see it) into an env-var value on one deployment
+(where nobody outside that operator can). This is a hard invariant of
+this spec, not a convention.
+
+A school with an urgent domain change that cannot wait for the upstream
+PR review cycle patches `config/schoolRegistry.ts` in its **own fork**,
+deploys the fork, and then opens the upstream PR to bring the change
+back into shared code on the normal cadence. The fork-local patch is
+git-tracked and reviewable inside that school's own repository, which
+preserves the audit property; the runtime-override alternative would
+not.
+
+### Downstream propagation
+
+Registry entries added or updated upstream reach a running deployment
+only through the deployment's next **upstream pull-and-redeploy** —
+there is no push channel from the shared repo to a per-school Vercel or
+Convex runtime. Each downstream fork controls its own pull cadence
+(annual, per-semester, or on-security-fix, per the operator's judgment
+documented under "Ongoing per-school maintenance" in the Fork-and-Adopt
+Runbook above).
+
+An entry present in the Registry is only *used* by a given deployment
+if that deployment's `CAMPUSCORE_SCHOOL_CODE` env value matches the
+entry's `code`. Every other entry is inert data on that deployment —
+`getActiveSchool()` reads a single entry per request, and both the
+Admin_Predicate and the Member_Predicate delegate to it. This is the
+mechanism by which one shared Registry safely serves N per-school
+deployments without any cross-tenant coupling at runtime.
+
+### Open question deferred: MOE school code granularity
+
+The Registry currently carries one generic `moe-school` entry covering
+all MOE schools that share `students.edu.sg` as their student mail
+subdomain. If a specific junior college or secondary school inside that
+umbrella wants to deploy CampusCore with its own identity — its own
+`CAMPUSCORE_SCHOOL_CODE`, its own admin allowlist, its own display name
+in the promo landing — the correct shape of that entry is **deferred to
+a future spec** rather than settled here.
+
+The open question is whether a per-school entry that shares
+`students.edu.sg` with the generic `moe-school` row should be
+distinguished by a school-owned identifier (for example a school-code
+column keyed off the MOE school-code registry), and if so, where that
+identifier is checked (Clerk claim, JWT template, or a Convex-side
+lookup). Each of the three checking sites has different trust and
+latency properties, and the decision affects the Auth Model in ways
+that warrant their own requirements phase. See
+`.kiro/specs/multi-school-template-hardening/design.md § Open Questions`
+item 5 for the framing of the deferral.
+
+Until that follow-up spec lands, an MOE junior college or secondary
+school that wants to pilot CampusCore deploys against the generic
+`moe-school` entry and accepts that its admin allowlist and dashboard
+identity are shared with any other MOE school piloting under the same
+code. This is a knowingly-taken limitation, not an oversight.
+
+## Telegram Webhook Secret Rotation
+
+> This section is the operational procedure for rotating
+> `TELEGRAM_WEBHOOK_SECRET` — the shared value Telegram echoes back in
+> the `X-Telegram-Bot-Api-Secret-Token` header on every update, and the
+> Convex webhook handler equality-checks against `process.env` to
+> decide whether to admit or reject the request. It mirrors the design
+> in `.kiro/specs/multi-school-template-hardening/design.md § LLD-6`
+> and the ratification note in that same design's § Security
+> Considerations. The current webhook handler accepts exactly one
+> secret at a time; this spec does not change that. What follows is
+> the safe-under-Telegram-retries procedure for turning the single
+> secret over, plus the deferred dual-secret refinement that would
+> eliminate the rotation-window rejection entirely.
+
+### Single-secret rotation sequence
+
+Rotation is a five-step operation that MUST be executed in the order
+below. `S_old` is the current value of `TELEGRAM_WEBHOOK_SECRET` on the
+Convex side; `S_new` is the fresh value being installed. No real bot
+token appears in any command below — the token in step 2 is elided
+because it lives only in the Convex env and in a password manager, and
+this document is not the source of truth for it.
+
+1. Generate a fresh, cryptographically-random secret on the operator's
+   workstation:
+
+   ```bash
+   openssl rand -hex 32
+   ```
+
+   The output is a 64-character lowercase hex string with 256 bits of
+   entropy — well above the header field's threat model. Treat it as
+   sensitive from the moment it is produced; do not paste it into
+   chat, tickets, or terminal history that is not being retained
+   deliberately. Call the resulting value `S_new`.
+
+2. Call the Telegram Bot API `setWebhook` method with the **same
+   webhook URL** and `secret_token` set to `S_new`. The URL MUST match
+   the URL already registered for this bot; only the secret changes.
+   Placeholder form (the bot token is elided — replace
+   `<your-bot-token>` with the value from the Convex env,
+   `<S_new>` with the string generated in step 1):
+
+   ```bash
+   curl -sS "https://api.telegram.org/bot<your-bot-token>/setWebhook" \
+     --data "url=https://<your-convex-deployment>.convex.site/telegram/webhook" \
+     --data "secret_token=<S_new>"
+   ```
+
+   From this call onwards, Telegram sends `S_new` in the
+   `X-Telegram-Bot-Api-Secret-Token` header on every new update. Any
+   in-flight retries of updates that were first sent before this call
+   continue to carry `S_old` in the header — this is the reason the
+   propagation window described below is not zero.
+
+3. Set the new secret on the Convex runtime:
+
+   ```bash
+   npx convex env set TELEGRAM_WEBHOOK_SECRET <S_new>
+   ```
+
+   Convex records the new value in the deployment's environment and
+   begins hot-reloading the webhook handler's `process.env`.
+
+4. Redeploy Convex so the webhook handler is running against the new
+   env value on every module instance:
+
+   ```bash
+   npx convex deploy
+   ```
+
+   Once Convex reports the deploy complete, `S_new` is authoritative
+   on both sides — Telegram is sending it, and the handler is checking
+   against it.
+
+5. Verify by sending a benign test message to the bot from an operator
+   account and confirming (a) the message is accepted, (b) the Convex
+   logs show no `403 secret mismatch` entries for the test message,
+   and (c) a subsequent inbound update flows through the normal
+   ingestion path. Only after this end-to-end check succeeds is the
+   rotation considered complete; until then, treat both `S_old` and
+   `S_new` as sensitive and retain the password-manager entry for
+   `S_old` for the length of one Telegram retry window (see the next
+   sub-section) in case a rollback is needed.
+
+### Propagation window
+
+Between step 3 (Convex env set) and Convex finishing its hot-reload of
+the webhook handler — typically ~1–2 seconds — there is a brief window
+during which Telegram may already be sending `S_new` in the header
+while the handler on some instance is still checking against `S_old`.
+Updates that arrive inside that window with `S_new` in the header may
+be rejected by the still-old handler with a `403 secret mismatch`
+response.
+
+This is safe under the current Telegram delivery contract: Telegram
+retries failed webhook deliveries with exponential backoff, and the
+retries arrive after the hot-reload has completed. No update is lost;
+the observable effect is at most a few seconds of added delivery
+latency on the small subset of updates that fell inside the window.
+The Fork-and-Adopt Runbook above lists rotation on an annual cadence,
+which means this delay is realized at most once per year per
+deployment — well inside the noise floor of ordinary Telegram delivery
+variance. Operators SHALL NOT retry the rotation in response to
+transient `403 secret mismatch` entries in the Convex logs during the
+window; those entries are the expected shape of the propagation
+overlap and self-heal on Telegram's next retry.
+
+### Dual-secret variant (deferred)
+
+A future refinement, **not implemented in this spec**, would eliminate
+the propagation window entirely by accepting more than one valid
+secret at a time. The shape of that refinement is:
+
+- A new environment variable `TELEGRAM_WEBHOOK_SECRETS`, comma-separated
+  (for example `<S_old>,<S_new>`), replaces `TELEGRAM_WEBHOOK_SECRET`
+  in the webhook handler.
+- The handler parses the env into a set on each request and admits the
+  update if the presented `X-Telegram-Bot-Api-Secret-Token` header
+  equals **any** listed value. Rotation becomes: (a) append `S_new` to
+  the set, (b) call `setWebhook` with `S_new`, (c) after the retry
+  window has fully drained, remove `S_old` from the set.
+
+This variant is documented here so a future operator or contributor
+does not re-invent it or mistake its absence for an oversight. It is
+deliberately deferred because the single-secret variant is safe under
+Telegram's retry contract (see the propagation-window sub-section
+above) and adding a second env var and a set-membership check to the
+webhook handler would be a code change to a security-sensitive path
+that this spec is explicitly out of scope for. A follow-up spec MUST
+own that code change in full — this section merely reserves the
+design space.
+
+### Rejection on mismatch
+
+The Convex webhook handler SHALL reject any inbound Telegram update
+whose `X-Telegram-Bot-Api-Secret-Token` header does not equal the
+current `TELEGRAM_WEBHOOK_SECRET` env value. A mismatched or absent
+header yields an HTTP `403` response and no side effect on any Convex
+table — the update is dropped at the edge before it reaches the
+ingestion path.
+
+This paragraph ratifies existing handler behavior; this spec adds no
+new code to `convex/http.ts` or to any other module in the webhook
+path. The purpose of the ratification is to make the security property
+part of the written contract of this deployment — a future refactor
+that removes the equality check, weakens it to a prefix match, or
+routes unauthenticated inbound traffic to a mutation MUST be treated
+as a regression against this section and reverted before merge. If a
+legitimate need to change the check ever arises (for example the
+dual-secret variant above), that change owns its own spec, its own
+security review, and its own append to this document.
+
+## Data Isolation Boundary (one deployment per school)
+
+> This section ratifies the tenancy invariant that shapes every other
+> section of this document: one Convex project, one Vercel project,
+> one Clerk instance, and one Telegram bot serve exactly one school.
+> It mirrors
+> `.kiro/specs/multi-school-template-hardening/design.md § LLD-10`
+> and the § Deployment Topology diagram in the same design. This spec
+> does not change the boundary — it writes down, in operational
+> language, the property that Session-1 already committed to, so a
+> future contributor proposing a shared-runtime alternative has a
+> cost/benefit to counter rather than an unstated convention.
+
+### Tenancy unit
+
+The tenancy unit is the deployment, not a row in a table. Every
+CampusCore deployment SHALL provision exactly one of each of the
+following, and each SHALL serve exactly one school selected by that
+deployment's `CAMPUSCORE_SCHOOL_CODE` env value:
+
+- One Convex project — owns `tickets`, `queue`, `pairings`, `users`,
+  the scheduler, and the Telegram webhook endpoint.
+- One Vercel project — hosts the Next.js dashboard, the middleware
+  domain restriction, and every Next.js-side env var.
+- One Clerk instance — Google OAuth application, JWT template named
+  `convex`, allowed-sign-up domains equal to the active school's
+  `studentDomains ∪ staffDomains`.
+- One Telegram bot — its own bot token, its own webhook secret, its
+  own channel roster.
+
+The mapping is one-to-one across the whole set. Two schools SHALL NOT
+share a Convex project, a Vercel project, a Clerk instance, or a
+Telegram bot; a deployment SHALL NOT reference a second school by any
+code path. `CAMPUSCORE_SCHOOL_CODE` picks exactly one row out of the
+shared Registry, and every runtime lookup for the active school
+(display name, domains, admin allowlist context) resolves through
+`getActiveSchool()` against that single row.
+
+### No `school_id` column
+
+`convex/schema.ts` does not contain a `school_id` field on any table.
+Cross-school data mixing is not prevented by a WHERE-clause convention
+that a future contributor could forget — it is structurally impossible
+because per-school databases are separate Convex projects that share
+no address space, no connection string, no Clerk instance, and no
+scheduler. There is no query surface from which a mutation on
+Deployment A could read or write a row belonging to Deployment B, and
+therefore no `school_id` filter to get wrong.
+
+This is the property the deployment topology buys. It costs one Convex
+project per school and one small amount of extra operator work at
+adoption time; in return it removes an entire class of tenancy bugs
+from the codebase.
+
+### Reopening the door requires a new spec
+
+Any proposal to reintroduce a `school_id` column and consolidate
+schools onto a shared Convex project SHALL NOT be undertaken as a
+refactor, a schema cleanup, or a "while we're in here" change. It MUST
+own its own spec, and that spec MUST explicitly address four risks
+before any implementation work begins:
+
+- **Cross-tenant leak blast radius.** A single mutation that forgets
+  the `WHERE school_id = ...` clause leaks across every school on the
+  shared project. Under the current one-project-per-school model, that
+  class of bug is structurally impossible. Any consolidation spec MUST
+  document the enforcement mechanism (a helper like
+  `assertSameSchool(ctx, row)` piped through every mutation and query,
+  or an equivalent) and the test strategy that proves the enforcement
+  holds under the same numeric-iteration budget as this spec's P1–P7
+  property tests.
+- **Quota accounting.** Each Convex project today has its own
+  free-tier limits. On a shared project one busy school's bursts
+  compete for scheduler slots and function-invocation budget with
+  every other school. A consolidation spec MUST show how per-school
+  quota fairness is preserved, or accept and document the fairness
+  loss.
+- **Delete-my-school-cleanly.** A school leaving the network today is
+  `convex delete project` + `vercel remove project`. Under a shared
+  project it becomes a schema-wide filter-and-delete migration across
+  every table that carries `school_id`, plus a Clerk-side tenant
+  cleanup, plus a bot deregistration. A consolidation spec MUST
+  document the exit procedure end-to-end.
+- **PDPA compliance separation.** Each school today retains sole
+  custody of its reporters' PII — Clerk user IDs, verified `.edu.sg`
+  emails, Telegram user IDs. Under a shared project that PII is
+  co-mingled at rest and the compliance story becomes materially
+  harder for any future PDPA (Singapore's Personal Data Protection
+  Act) conversation. A consolidation spec MUST address the compliance
+  posture explicitly, not implicitly.
+
+Until a spec addressing all four risks is written, reviewed, and
+approved, the door stays closed. This paragraph is the written
+cost/benefit that any such proposal has to counter.
+
+### Single-school request scope
+
+No runtime code path SHALL enumerate entries for more than one school
+in a single request. Every predicate that answers a question about
+"which school does this identity belong to" reads from
+`getActiveSchool()`, which returns exactly one `SchoolEntry` — the one
+whose `code` equals `CAMPUSCORE_SCHOOL_CODE`. Concretely:
+
+- The **Registry** is compile-time data. `getActiveSchool()` picks one
+  row out of it per process; every other row is inert on this
+  deployment.
+- The **Admin_Predicate** (`isAdminEmail` in `config/school.ts`)
+  checks the domain against `getActiveSchool().staffDomains` and the
+  email against `CAMPUSCORE_ADMIN_ALLOWLIST` — neither surface
+  references any other school.
+- The **Member_Predicate** (`isSchoolMemberEmail` in
+  `config/school.ts`) checks the domain against
+  `getActiveSchool().studentDomains ∪ staffDomains` — again, one
+  school only.
+
+There is no request handler, middleware, mutation, action, or scheduled
+job that iterates over the Registry, or over multiple entries, or that
+takes a `school_code` parameter from the request. The active school is
+resolved once, at module load, from the environment, and every
+downstream check inherits it. A future change that introduces a
+per-request school selector MUST be treated as a regression against
+this section and reverted before merge — the deployment topology
+enforces the isolation, and the code paths preserve it.

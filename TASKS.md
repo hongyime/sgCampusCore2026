@@ -115,3 +115,38 @@
       that gets the deployment green.
 - [ ] TASK-47: Session 3 STATUS.md + WAITING_ON_HUMAN.md update — record
       Session 3 outcomes, open items, and the next-agent checklist.
+
+## Multi-School Template Hardening (Session 4)
+> Goal: harden the per-school template surfaces — Registry accuracy, predicate
+> audit, admin fail-closed, 30-day gate boundary, pairing entropy floor,
+> Registry evolution, and fork-and-adopt UX — into runnable code + tests +
+> docs. No AGENTS.md invariant runtime behavior is changed (spec Requirement 12).
+> All rows below correspond to completed tasks in
+> `.kiro/specs/multi-school-template-hardening/tasks.md` (Tasks 1.1–6).
+- [x] TASK-48: `config/schoolRegistry.ts` — additive optional fields
+      (`shortName`, `verified`) + exported `REGISTRY_SCHEMA_VERSION = 1`;
+      `readonly SchoolEntry[]` preserved (spec Task 1.2, R1.3/1.4/1.7/1.8).
+- [x] TASK-49: `config/school.ts` — trim-then-lowercase pipeline fixed in
+      `emailDomain` and `isAdminEmail`; multi-`@` behavior preserved as
+      `lastIndexOf("@")`; allowlist duplicates preserved by design (spec
+      Task 1.3, R2.2/2.6).
+- [x] TASK-50: `convex/pairing.ts` — code comment above the
+      `crypto.randomUUID()` line documenting the ≥128-bit entropy floor
+      (v4 UUID = 122 bits accepted lower bound), preferred alternative,
+      and explicit `Math.random` prohibition. Comment-only, no migration
+      (spec Task 1.4, R5.3/5.4).
+- [x] TASK-51: Registry static shape test (`config/schoolRegistry.test.mjs`)
+      + predicate edge-case unit tests (`config/school.hardening.test.mjs`)
+      via `node --test`, wired into `test:unit` (spec Tasks 2.1/2.2,
+      R1.1/1.2/1.5/1.7 + R2.3–2.6, R3.1/3.3–3.6).
+- [x] TASK-52: `fast-check@3.23.2` pinned exact devDependency + `test:pbt`
+      script + property tests P1/P4/P5/P6/P2/P3/P7 (numRuns=100) + Convex
+      mutation in-memory stub `convex/pairing.testStub.mjs` (spec Tasks
+      1.1/2.3/3.1–3.7, R11.1–11.5 + R1.1/2.1/3.1/3.2/4.1/5.1/5.2).
+- [x] TASK-53: `DEPLOYMENT.md` append-only hardening runbooks — Fork-and-Adopt
+      Runbook, Admin Auth Lifecycle, Registry Evolution Process, Telegram
+      Webhook Secret Rotation, Data Isolation Boundary (spec Tasks 5.1–5.5,
+      R6–R10).
+- [x] TASK-54: `WAITING_ON_HUMAN.md` — 8 Registry domain verification rows
+      filed (sit/suss/np/sp/tp/nyp/rp/ite), annotated as non-agent gates
+      requiring school IT portal access (spec Task 1.5, R1.6).
