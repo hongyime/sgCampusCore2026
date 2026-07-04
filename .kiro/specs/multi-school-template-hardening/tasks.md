@@ -25,8 +25,8 @@ to each school's IT portal or a current student account. Those tasks produce
 
 ## Tasks
 
-- [ ] 1. Materialize AGENTS.md approvals and code hardening
-  - [ ] 1.1 Pin `fast-check` as an exact-version devDependency in `package.json`
+- [x] 1. Materialize AGENTS.md approvals and code hardening
+  - [x] 1.1 Pin `fast-check` as an exact-version devDependency in `package.json`
     - Add `"fast-check": "3.23.2"` (no `^`, no `~`) to `devDependencies` only
       — never to `dependencies`. Do not touch any other dependency entry.
     - Add `"test:pbt": "node --test config/**/*.property.test.mjs convex/**/*.property.test.mjs"`
@@ -37,7 +37,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Requirements: 11.1, 11.2, 11.3, 11.5_
     - _Design: § Dependencies, § Testing Strategy — Property-Based Testing_
 
-  - [ ] 1.2 Add optional additive fields and `REGISTRY_SCHEMA_VERSION` to `config/schoolRegistry.ts`
+  - [x] 1.2 Add optional additive fields and `REGISTRY_SCHEMA_VERSION` to `config/schoolRegistry.ts`
     - Extend `SchoolEntry` with optional `shortName?: string` and
       `verified?: { at: number; by: string; source: string }` — additive only,
       no required field removed or renamed (R1.3, R1.4, § LLD-1 Step 2).
@@ -52,7 +52,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Requirements: 1.3, 1.4, 1.7, 1.8_
     - _Design: § Component 1 (additive fields table), § LLD-1 Steps 2 and 4_
 
-  - [ ] 1.3 Fix the trim-then-lowercase pipeline in `emailDomain` (`config/school.ts`)
+  - [x] 1.3 Fix the trim-then-lowercase pipeline in `emailDomain` (`config/school.ts`)
     - Change `emailDomain` to trim the input before slicing at the last `@`
       and before lowercasing (R2.2, § LLD-2 aggregate fix list item 1).
     - Change `isAdminEmail` to trim before lowercasing so the local variable
@@ -67,7 +67,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Requirements: 2.2, 2.4, 2.5, 2.6, 3.4_
     - _Design: § LLD-2 aggregate fix list, § LLD-4 documented behavior_
 
-  - [ ] 1.4 Document the pairing-token entropy floor in `convex/pairing.ts`
+  - [x] 1.4 Document the pairing-token entropy floor in `convex/pairing.ts`
     - Add a code comment immediately above the
       `const token = crypto.randomUUID().replace(/-/g, "");` line stating:
       "Entropy floor: >=128 bits from Web Crypto CSPRNG. `crypto.randomUUID()`
@@ -82,7 +82,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Requirements: 5.3, 5.4_
     - _Design: § LLD-3, § Security Considerations "Entropy floor for pairing tokens"_
 
-  - [ ] 1.5 File 8 `WAITING_ON_HUMAN.md` entries for `// verify` Registry domains
+  - [x] 1.5 File 8 `WAITING_ON_HUMAN.md` entries for `// verify` Registry domains
     - Append a new section titled
       `## Registry Domain Verification (multi-school-template-hardening, R1.6)`
       after the existing "Credentials & Keys" section in
@@ -103,8 +103,8 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Requirements: 1.6_
     - _Design: § LLD-1 Step 1 (Sources of truth), § Error Scenario 3_
 
-- [ ] 2. Static and example-based tests (`node --test`)
-  - [ ] 2.1 Write Registry static shape test at `config/schoolRegistry.test.mjs`
+- [x] 2. Static and example-based tests (`node --test`)
+  - [x] 2.1 Write Registry static shape test at `config/schoolRegistry.test.mjs`
     - New file using `import { test } from 'node:test'` and
       `import { strict as assert } from 'node:assert'`. No new devDependency
       required (Node built-in).
@@ -130,7 +130,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Design: § LLD-1 Step 3, § Testing Strategy — Unit Testing Approach
       (`findSchoolByCode`, `acceptedDomainsForSchool` rows)_
 
-  - [ ] 2.2 Write example-based predicate edge-case unit tests at `config/school.hardening.test.mjs`
+  - [x] 2.2 Write example-based predicate edge-case unit tests at `config/school.hardening.test.mjs`
     - New file — deliberately NOT extending Session-3's `config/school.test.mjs`
       because that file is under Session-3 scope and this spec's edge cases
       (trim, whitespace, multi-`@`, malformed allowlist tokens) belong to
@@ -160,7 +160,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Design: § LLD-2 aggregate fix list, § LLD-4, § Testing Strategy —
       Unit Testing Approach_
 
-  - [ ] 2.3 Build an in-memory Convex mutation stub for P2/P3/P7 property tests
+  - [x] 2.3 Build an in-memory Convex mutation stub for P2/P3/P7 property tests
     - New file `convex/pairing.testStub.mjs` (co-located so `.mjs` test files
       in `convex/` can import it with a relative path).
     - Export a factory `createStubCtx({ now, users, pairings })` that returns
@@ -191,8 +191,8 @@ to each school's IT portal or a current student account. Those tasks produce
       § Testing Strategy — Property-Based Testing "Requires the Convex
       test harness or a serializable in-memory stub"_
 
-- [ ] 3. Property-based tests P1–P7 (`fast-check` at ≥100 iterations, pinned exact version)
-  - [ ] 3.1 Write P1 property test at `config/isAdminEmail.p1.property.test.mjs`
+- [x] 3. Property-based tests P1–P7 (`fast-check` at ≥100 iterations, pinned exact version)
+  - [x] 3.1 Write P1 property test at `config/isAdminEmail.p1.property.test.mjs`
     - **Property 1: Fail-closed admin.**
     - **Validates: Requirements 3.1, 12.8** (design.md § Correctness
       Properties P1, § Auth Model fail-closed invariant).
@@ -212,7 +212,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Requirements: 3.1, 12.8_
     - _Design: § Correctness Properties — Property 1, § LLD-4_
 
-  - [ ] 3.2 Write P4 property test at `config/isAdminEmail.p4.property.test.mjs`
+  - [x] 3.2 Write P4 property test at `config/isAdminEmail.p4.property.test.mjs`
     - **Property 4: Staff-domain necessary for admin.**
     - **Validates: Requirements 3.2** (design.md § Correctness Properties
       P4, § Auth Model algorithm).
@@ -233,7 +233,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Design: § Correctness Properties — Property 4, § Algorithm
       `isAdminEmail`_
 
-  - [ ] 3.3 Write P5 property test at `config/isSchoolMemberEmail.p5.property.test.mjs`
+  - [x] 3.3 Write P5 property test at `config/isSchoolMemberEmail.p5.property.test.mjs`
     - **Property 5: Case insensitivity in local-part.**
     - **Validates: Requirements 2.1** (design.md § Correctness Properties
       P5, § LLD-2 aggregate fix list).
@@ -253,7 +253,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Requirements: 2.1_
     - _Design: § Correctness Properties — Property 5, § LLD-2_
 
-  - [ ] 3.4 Write P6 property test at `config/schoolRegistry.p6.property.test.mjs`
+  - [x] 3.4 Write P6 property test at `config/schoolRegistry.p6.property.test.mjs`
     - **Property 6: Registry uniqueness.**
     - **Validates: Requirements 1.1** (design.md § Correctness Properties
       P6, § Registry Contract invariants).
@@ -273,7 +273,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Requirements: 1.1_
     - _Design: § Correctness Properties — Property 6_
 
-  - [ ] 3.5 Write P2 property test at `convex/pairing.p2.property.test.mjs`
+  - [x] 3.5 Write P2 property test at `convex/pairing.p2.property.test.mjs`
     - **Property 2: Pairing single-use.**
     - **Validates: Requirements 5.1, 12.9** (design.md § Correctness
       Properties P2, § Algorithm `redeemPairingToken`, § Error Scenario 5).
@@ -296,7 +296,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Design: § Correctness Properties — Property 2, § Algorithm
       `redeemPairingToken` serializability note_
 
-  - [ ] 3.6 Write P3 property test at `convex/pairing.p3.property.test.mjs`
+  - [x] 3.6 Write P3 property test at `convex/pairing.p3.property.test.mjs`
     - **Property 3: Pairing TTL.**
     - **Validates: Requirements 5.2** (design.md § Correctness Properties
       P3, § Algorithm `redeemPairingToken`).
@@ -316,7 +316,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Design: § Correctness Properties — Property 3, § LLD-3 (indirect —
       TTL is fixed at 180_000)_
 
-  - [ ] 3.7 Write P7 property test at `convex/verification.p7.property.test.mjs`
+  - [x] 3.7 Write P7 property test at `convex/verification.p7.property.test.mjs`
     - **Property 7: 30-day gate one-shot.**
     - **Validates: Requirements 4.1, 12.10** (design.md § Correctness
       Properties P7, § LLD-5 boundary conditions).
@@ -346,7 +346,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Design: § Correctness Properties — Property 7, § LLD-5 (three-state
       table + boundary conditions)_
 
-- [ ] 4. Checkpoint — Ensure all tests pass
+- [x] 4. Checkpoint — Ensure all tests pass
   - Run `npm run test:unit` and `npm run test:pbt` locally in the
     Session-3 Local_Mirror (non-UNC path). Both must exit 0.
   - Run `npm run typecheck` — `SchoolEntry` optional-field additions
@@ -357,7 +357,7 @@ to each school's IT portal or a current student account. Those tasks produce
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 5. Extend `DEPLOYMENT.md` with per-school hardening runbooks (append-only onto Session-3's file)
-  - [ ] 5.1 Append the Fork-and-Adopt Runbook section (R8)
+  - [x] 5.1 Append the Fork-and-Adopt Runbook section (R8)
     - Insert as a new top-level `## Fork-and-Adopt Runbook (per-school
       operator handoff)` section after Session-3's DEPLOYMENT.md ends
       (do not rewrite Session-3's content).
@@ -397,7 +397,7 @@ to each school's IT portal or a current student account. Those tasks produce
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
     - _Design: § LLD-7_
 
-  - [ ] 5.2 Append the Admin Auth Lifecycle Process section (R6)
+  - [x] 5.2 Append the Admin Auth Lifecycle Process section (R6)
     - New section `## Admin Auth Lifecycle (onboard / rotate / revoke)`
       after §5.1's Fork Runbook.
     - Content (mirrors § LLD-9):

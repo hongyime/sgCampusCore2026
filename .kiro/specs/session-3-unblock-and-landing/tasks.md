@@ -240,7 +240,7 @@
     - _Requirements: 4.1, 4.4, 5.1–5.6, 6.1, 6.2, 10.4, 11.1–11.6_
     - _Design: §C3, §C7_
 
-- [ ] 21. Update Vercel project Build Command to
+- [x] 21. Update Vercel project Build Command to
       `npx convex deploy --cmd 'next build'`
     - This is a Vercel dashboard action (Project Settings → Build &
       Development Settings). Cannot be scripted from the repo.
@@ -249,7 +249,7 @@
     - _Requirements: 3.1, 3.2, 3.4_
     - _Design: §C2_
 
-- [ ] 22. Populate Vercel Project Environment Variables per §5 checklist
+- [x] 22. Populate Vercel Project Environment Variables per §5 checklist
     - Preview scope, Production scope, Development scope — set each
       variable listed in DEPLOYMENT.md §C3 Nextjs_Env column with the
       correct scope and Secret flag.

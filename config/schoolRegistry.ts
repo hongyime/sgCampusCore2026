@@ -64,28 +64,28 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     code: "smu",
     name: "Singapore Management University",
     category: "autonomous_university",
-    studentDomains: ["smu.edu.sg"],
+    studentDomains: ["smu.edu.sg"], // verify against SMU IT portal
     staffDomains: ["smu.edu.sg"],
   },
   {
     code: "nus",
     name: "National University of Singapore",
     category: "autonomous_university",
-    studentDomains: ["u.nus.edu"],
+    studentDomains: ["u.nus.edu"], // verify against NUS IT portal
     staffDomains: ["nus.edu.sg"],
   },
   {
     code: "ntu",
     name: "Nanyang Technological University",
     category: "autonomous_university",
-    studentDomains: ["e.ntu.edu.sg"],
+    studentDomains: ["e.ntu.edu.sg"], // verify against NTU IT portal
     staffDomains: ["ntu.edu.sg"],
   },
   {
     code: "sutd",
     name: "Singapore University of Technology and Design",
     category: "autonomous_university",
-    studentDomains: ["mymail.sutd.edu.sg"],
+    studentDomains: ["mymail.sutd.edu.sg"], // verify against SUTD IT portal
     staffDomains: ["sutd.edu.sg"],
   },
   {
@@ -157,7 +157,7 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     code: "moe-school",
     name: "MOE School (generic — Student iCON)",
     category: "moe_school",
-    studentDomains: ["students.edu.sg"],
+    studentDomains: ["students.edu.sg"], // verify Student iCON domain against MOE IT-portal reference
     staffDomains: ["moe.edu.sg", "schools.gov.sg"],
   },
 ];
