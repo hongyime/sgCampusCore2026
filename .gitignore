@@ -43,3 +43,33 @@ project-info.json
 
 # vercel — .vercel/ links a local checkout to a Vercel project; never commit
 .vercel
+
+# AI / editor dot directories (managed via sourcerepo)
+.*
+!.github/
+!.gitignore
+!.gitattributes
+!.gitmodules
+!.editorconfig
+!.nvmrc
+!.node-version
+!.python-version
+!.tool-versions
+!.prettierrc*
+!.eslintrc*
+!.stylelintrc*
+!.babelrc*
+!.browserslistrc
+!.dockerignore
+!.npmrc
+!.yarnrc
+!.yarnrc.yml
+!.env.example
+!.env.template
+!.env.sample
+!.sourcery.yml
+!.deepsource.toml
+skills/
+skills-lock.json
+docs/
+templates/
