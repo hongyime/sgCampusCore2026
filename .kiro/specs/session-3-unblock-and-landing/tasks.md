@@ -260,7 +260,7 @@
     - _Requirements: 3.3, 5.1–5.5_
     - _Design: §C2_
 
-- [ ] 23. Trigger a Vercel Preview deploy and confirm green
+- [x] 23. Trigger a Vercel Preview deploy and confirm green
     - Push the Session-3 branch. Watch the build in Vercel.
     - Assertions:
       - Build Ready.
@@ -274,7 +274,7 @@
 
 ## Wave 6 — Session close
 
-- [ ] 24. Update `STATUS.md` with Session-3 outcomes
+- [x] 24. Update `STATUS.md` with Session-3 outcomes
     - Overwrite (per file convention) with:
       - "As of: Session 3 — unblock, promo landing, first Vercel Preview."
       - Done-this-session bullet list.
@@ -284,7 +284,7 @@
       - Next-agent checklist.
     - _Requirements: (session hygiene, not tied to a specific AC)_
 
-- [ ] 25. Update `WAITING_ON_HUMAN.md` with Session-3 residuals
+- [x] 25. Update `WAITING_ON_HUMAN.md` with Session-3 residuals
     - Add: generate `prod:` Convex deploy key; populate Vercel Production
       env; set `RESEND_FROM_EMAIL` / `RESEND_ESCALATION_TO` in Convex
       env; enable Google social connection in Clerk dashboard; create
@@ -293,7 +293,7 @@
       items unchanged.
     - _Requirements: 5.5, 11.4_
 
-- [ ] 26. Tick the Session-3 rows in root `TASKS.md`
+- [x] 26. Tick the Session-3 rows in root `TASKS.md`
       (TASK-41 … TASK-47)
     - Match completed work to the checklist rows.
     - Anything not fully closed becomes an explicit residual in

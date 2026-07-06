@@ -84,12 +84,12 @@
 > landing page at `/`, and a documented per-school fork path in the footer."
 > Preview Convex deploy key in use (`preview:hongyime:sgcampuscore|...`); a
 > production deploy key is a follow-up (see WAITING_ON_HUMAN.md).
-- [ ] TASK-41: Env reconciliation — populate `.env.local` (Next.js/Vercel) and
+- [x] TASK-41: Env reconciliation — populate `.env.local` (Next.js/Vercel) and
       `.env.convex.local` (Convex) with real values (admin allowlist,
       Telegram bot token, Convex preview deploy key). Write a
       `DEPLOYMENT.md` section that clearly separates the Vercel env list from
       the Convex env list and explains why they are distinct runtimes.
-- [ ] TASK-42: Convex project init — link the preview deploy key
+- [x] TASK-42: Convex project init — link the preview deploy key
       (`preview:hongyime:sgcampuscore`), run `npx convex dev --once` to generate
       `convex/_generated/*`, run `npx convex env set` for every Convex-side var
       (CLERK_JWT_ISSUER_DOMAIN, TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET,
@@ -100,20 +100,33 @@
       dashboard steps in `WAITING_ON_HUMAN.md` (create JWT template named
       `convex`, enable Google social connection). Verify `convex/auth.config.ts`
       references the same template name.
-- [ ] TASK-44: SMU-specialized landing page at `/` — replace the placeholder
+      **Session-3 status:** Both dashboard actions filed in
+      `WAITING_ON_HUMAN.md § "Credentials & Keys"` as two dedicated rows
+      (Clerk JWT template named `convex` + Google social connection).
+      Row stays open until the operator toggles them in the Clerk
+      dashboard; not agent-actionable.
+- [x] TASK-44: SMU-specialized landing page at `/` — replace the placeholder
       with SMU-branded hero, brief Report → Triage → Broadcast → Resolve tour,
       primary CTAs (open public dashboard, sign in for admin/volunteer), and a
       bottom "This is the CampusCore template — deploy it for your school"
       section with GitHub fork icon + repo link. Working app routes
       (`/dashboard`, `/volunteer`, `/admin`, `/api/*`) unchanged.
-- [ ] TASK-45: Local build green — `npm run typecheck && npm run lint &&
+      **Session-3 note:** Shipped as a **template-first** promo landing
+      (design §C4), not SMU-branded — the multi-school template pivot
+      supersedes SMU-specific copy. The five components (`Hero`,
+      `ValueProps`, `ForkCta`, `ReferenceDeployment`, `Footer`) all live
+      under a deletable `app/(promo)/` + `components/promo/` tree; the
+      SMU reference deployment is credited in `ReferenceDeployment.tsx`
+      with a link into `/dashboard`. `/dashboard`, `/volunteer`,
+      `/admin`, `/api/*` all unchanged.
+- [x] TASK-45: Local build green — `npm run typecheck && npm run lint &&
       npm run build` all pass. Fix residual `@/convex/_generated/api` import
       fallout after codegen exists.
-- [ ] TASK-46: Vercel deploy fix — diagnose current failing build at
+- [x] TASK-46: Vercel deploy fix — diagnose current failing build at
       `sgcampuscore.hong-yi.me`, document the exact Vercel env var list needed
       (with which ones must be `NEXT_PUBLIC_*` vs server-only), push a commit
       that gets the deployment green.
-- [ ] TASK-47: Session 3 STATUS.md + WAITING_ON_HUMAN.md update — record
+- [x] TASK-47: Session 3 STATUS.md + WAITING_ON_HUMAN.md update — record
       Session 3 outcomes, open items, and the next-agent checklist.
 
 ## Multi-School Template Hardening (Session 4)

@@ -4,12 +4,57 @@
 > action. The build never blocks on these — each is stubbed in code and the
 > real requirement is listed here. Add to this file when new items are found.
 
+## Session 3 Task 23 — Live deploy residuals (added 2026-07-05)
+
+- [x] **`RESEND_FROM_EMAIL` (Convex_Env)** — RESOLVED 2026-07-06. Operator
+      rotated the Resend API key to a full-access key; `GET /domains`
+      returned `sgcampuscore.hong-yi.me` as `verified`. Set to
+      `alerts@sgcampuscore.hong-yi.me` on both `elated-dogfish-303` and
+      the project-level preview defaults, and mirrored into
+      `.env.convex.local`. Escalation module now has full config.
+- [x] **`RESEND_ESCALATION_TO` (Convex_Env)** — RESOLVED 2026-07-06. Set
+      to `hello@hong-yi.me` on both `elated-dogfish-303` and the
+      project-level preview defaults; mirrored into `.env.convex.local`.
+      Note: the recipient sits on the `hong-yi.me` apex while the
+      verified Resend sender is the `sgcampuscore.hong-yi.me`
+      subdomain — fine on the recipient side, but the apex is not itself
+      a verified Resend sender if a future flow ever wants to `From:`
+      it. Live-send validation (tech_design §9, Pre-Demo Validation
+      list) is still open below.
+- [ ] **Vercel Production Convex deploy key.** Production still has an
+      empty `CONVEX_DEPLOY_KEY` (intended fail-fast). Every deploy that
+      Vercel targets to `production` — which currently includes any
+      push to `main` — errors out at the Build Command until a
+      `prod:hongyime:sgcampuscore|<key>` is generated and populated.
+      Preview deploys succeed via a manual API redeploy (see the
+      `.omo/redeploy2-body.json` shape). Session 3 ships Preview only
+      by design; keeping this row open until Session 5 or later.
+- [ ] **Custom-domain aliasing** — the sgcampuscore.hong-yi.me custom
+      domain must be re-aliased to a green deployment each time one is
+      cut, because Vercel's SSO covers every `*.vercel.app` URL under
+      the `The Prawn Vercel` org. See DEPLOYMENT.md § "Deployment
+      protection and the custom domain" for the aliasing curl. This is
+      an operational chore, not a code change.
+
 ## Credentials & Keys (stubbed via .env.example)
 - [ ] **Telegram** — bot token (via @BotFather) + webhook URL registration
       (`setWebhook` to the deployed Convex HTTP endpoint). Code path stubbed.
+      Wiring is documented in DEPLOYMENT.md § "Telegram webhook wiring";
+      the URL is `https://<convex-slug>.convex.site/telegram/webhook`.
 - [ ] **Clerk** — instance publishable + secret keys, AND the per-school domain
       restriction (configured in the Clerk dashboard, not just in code). Each
       deployment restricts to ITS school's domains (see config/schoolRegistry.ts).
+- [ ] **Clerk JWT template named `convex`** — Convex-side auth verification
+      (`convex/auth.config.ts`) expects a Clerk JWT template with the exact
+      name `convex`. Create it in Clerk Dashboard → JWT Templates → New
+      Template → pick the "Convex" preset (or create a custom template named
+      `convex` with the default Convex claim set). Not scriptable; must be
+      done in the Clerk dashboard for each school's Clerk instance.
+- [ ] **Google social connection in Clerk** — enable Google as a social
+      connection in Clerk Dashboard → User & Authentication → Social
+      Connections, so a school user can sign in with their institutional
+      Google Workspace account. Per-school Clerk instance, per-school
+      dashboard toggle.
 - [ ] **Per-school template config** — set `CAMPUSCORE_SCHOOL_CODE` and
       `CAMPUSCORE_ADMIN_ALLOWLIST` in BOTH the Next.js env and the Convex env.
       Confirm the school's exact STUDENT subdomain (several are marked `// verify`

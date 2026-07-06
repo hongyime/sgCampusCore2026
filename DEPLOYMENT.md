@@ -458,6 +458,76 @@ all three in the Convex environment. Escalation email volume is on the
 Resend free tier (3,000/month); flag it in WAITING_ON_HUMAN.md if a
 feature would materially raise that number.
 
+**Symptom: Vercel build reaches `next build` OK but fails at
+`convex deploy` with `Environment variable X is used in auth config file
+but its value was not set`.**
+The Convex Preview deployment (a per-branch deployment named by the
+Convex platform, e.g. `elated-dogfish-303`) has no env vars set. Seed
+them one of two ways:
+1. **Project-level defaults for all preview deployments** (durable — new
+   preview branches inherit these on first push):
+
+   ```powershell
+   $env:CONVEX_OVERRIDE_ACCESS_TOKEN = "<CONVEX_PAT>"
+   npx convex env default set --project <team>:<project> --type preview <NAME> <VALUE>
+   ```
+
+   Preview deploy keys do NOT have permission to write project-level
+   defaults; a Convex Personal Access Token (PAT) is required. See
+   Convex docs on Deploy Keys and Personal Access Tokens.
+2. **Direct seeding of an existing preview deployment** (immediate — an
+   existing preview deployment does NOT retroactively inherit later
+   project-default writes):
+
+   ```powershell
+   $env:CONVEX_OVERRIDE_ACCESS_TOKEN = "<CONVEX_PAT>"
+   npx convex env set --deployment <preview-name> <NAME> <VALUE>
+   ```
+
+Do both: `default set --type preview` for durability, `env set
+--deployment <preview-name>` for the deployment that already exists.
+
+### Env file taxonomy — .env, .env.example, .env.local, .env.convex.local
+
+Two runtimes, so two files of real values plus one committed template:
+
+| File                    | Committed? | Owning runtime               | Purpose                                                                                     |
+| ----------------------- | ---------- | ---------------------------- | ------------------------------------------------------------------------------------------- |
+| `.env.example`          | Yes        | Both (docs only)             | Committed template. Placeholders only, never real values. Read by no runtime — docs surface.|
+| `.env.local`            | No         | Next.js (local `next dev`)   | Real values that the Next.js runtime reads locally. `.env*.local` is gitignored.            |
+| `.env.convex.local`     | No         | Convex CLI (local seed)      | Real values fed to `npx convex env set` and `--from-file`. `.env*.local` is gitignored.     |
+| `.env`, `.env.development`, `.env.production` | Not committed | (none) | Do not use. They are gitignored to prevent unscoped secret leaks. Consolidate onto the two `.local` files above. |
+
+Rules:
+
+- Never commit any file except `.env.example`.
+- The Next.js runtime on Vercel does NOT read either `.env*.local` file
+  in the cloud build — it reads Vercel Project Environment Variables.
+- The Convex runtime on `convex.cloud` does NOT read either file — it
+  reads what `npx convex env set` seeded. `.env.convex.local` exists
+  purely to give the operator a single-file seed source.
+- `.gitignore` already covers `.env`, `.env*.local`, `.env.development`,
+  `.env.production`. Verify with `git check-ignore -v .env.local`.
+
+### CONVEX_WEBHOOK_URL — the Telegram webhook target for Convex
+
+Convex serves HTTP actions from a different hostname than the WebSocket
+data plane. The mapping is deterministic: replace the `.convex.cloud`
+suffix on the deployment URL with `.convex.site` and append the route.
+
+For this preview deployment:
+
+- `NEXT_PUBLIC_CONVEX_URL` = `https://elated-dogfish-303.convex.cloud`
+  (data plane; WebSocket + queries/mutations)
+- Convex HTTP actions base = `https://elated-dogfish-303.convex.site`
+- Telegram webhook URL = `https://elated-dogfish-303.convex.site/telegram/webhook`
+  (the route registered by `convex/http.ts`)
+
+Register that URL against the Telegram bot via `setWebhook`, passing
+`secret_token` = the value of `TELEGRAM_WEBHOOK_SECRET` (mirrored in
+both runtimes). Do not do this from inside a build; it is a one-shot
+operational step. Flagged in WAITING_ON_HUMAN.md.
+
 ## Approval-checkpoint reminder
 
 Before merging any fork PR that changes deployment configuration, re-read
@@ -1251,3 +1321,106 @@ downstream check inherits it. A future change that introduces a
 per-request school selector MUST be treated as a regression against
 this section and reverted before merge — the deployment topology
 enforces the isolation, and the code paths preserve it.
+
+## Session 3 Task 23 addenda
+
+Three points came up during the first green Vercel Preview deploy that
+have permanent runbook implications. Adding them here rather than in
+STATUS.md because STATUS.md is a per-session document and this material
+is fork-durable.
+
+### Why so many env files?
+
+A fork developer starting the runbook for the first time will see
+`.env.example`, `.env.local`, and `.env.convex.local` and reasonably
+ask why. The short answer:
+
+- **`.env.example`** — committed template. Every key is listed with an
+  empty placeholder. This is the file a fork developer copies as the
+  starting point. Real values never live here.
+- **`.env.local`** — local-dev secrets for the **Next.js** runtime.
+  `.gitignore` covers `.env*.local`; the file is never committed. Read
+  by `next dev` and by the local `npm run build`, and by scripts that
+  set the Telegram webhook. Cloud equivalent: **Vercel Project
+  Settings → Environment Variables** (Preview / Production /
+  Development scopes).
+- **`.env.convex.local`** — local-dev secrets for the **Convex**
+  runtime. Also gitignored. The Convex CLI reads `CONVEX_DEPLOY_KEY`
+  from here to authenticate, and the file is the source-of-truth for
+  the seeding scripts under `.omo/` that call `npx convex env set` for
+  every Convex-side variable. Cloud equivalent: **Convex dashboard
+  → Deployment settings → Environment Variables** (or `npx convex env
+  set` and `npx convex env default set` from the CLI).
+
+Neither cloud store reads the other. Vercel does not pass Convex-only
+variables to the Convex runtime, and Convex does not pass its variables
+to Next.js. That is the two-runtime split this runbook exists to make
+legible; the three files above are the local-dev face of it.
+
+### Telegram webhook wiring (a.k.a. "wtf is my CONVEX_WEBHOOK_URL")
+
+There is no env var called `CONVEX_WEBHOOK_URL` in this project, and
+there should not be — the value it would carry is derived, not
+configured. Convex's HTTP router is served on `<slug>.convex.site`
+(**not** `<slug>.convex.cloud`, which is the app-facing WebSocket URL).
+The Telegram-facing path is defined in `convex/http.ts` as
+`/telegram/webhook`.
+
+The URL to hand to Telegram's `setWebhook` for the current Preview
+deployment is:
+
+```text
+https://elated-dogfish-303.convex.site/telegram/webhook
+```
+
+`elated-dogfish-303` is the preview deployment slug of the
+`hongyime/sgcampuscore` Convex project; substitute your own preview or
+production slug for your fork. Register it with:
+
+```bash
+curl -s -X POST "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://<slug>.convex.site/telegram/webhook",
+    "secret_token": "<TELEGRAM_WEBHOOK_SECRET>",
+    "allowed_updates": ["message", "callback_query"]
+  }'
+```
+
+The `secret_token` must equal `TELEGRAM_WEBHOOK_SECRET` seeded into
+Convex_Env (Convex `http.ts` compares it against the
+`X-Telegram-Bot-Api-Secret-Token` header on every incoming update). It
+is one of the three mirrored variables — set the same string on the
+Nextjs_Env side too. Verify with `getWebhookInfo`:
+
+```bash
+curl -s "https://api.telegram.org/bot<BOT_TOKEN>/getWebhookInfo"
+```
+
+The response should show your `.convex.site` URL and
+`has_custom_certificate: false`, with an empty `last_error_message`.
+
+### Deployment protection and the custom domain
+
+Vercel projects created against `The Prawn Vercel` inherit an
+organization-level SSO on every `*.vercel.app` URL — the
+`ssoProtection.deploymentType` is `all_except_custom_domains`. That
+means `sgcampuscore-<hash>-theprawnvercel.vercel.app` will 302 to a
+Vercel SSO gate, but `sgcampuscore.hong-yi.me` (the custom domain)
+will not. When you promote a deployment (Preview or Production) that
+you want a stranger to browse, alias it explicitly to the custom
+domain:
+
+```bash
+curl -sS -X POST \
+  -H "Authorization: Bearer <VERCEL_TOKEN>" \
+  -H "Content-Type: application/json" \
+  --data '{"alias":"sgcampuscore.hong-yi.me"}' \
+  "https://api.vercel.com/v2/deployments/<DEPLOYMENT_ID>/aliases?teamId=<TEAM_ID>"
+```
+
+Once aliased, `curl -sI https://sgcampuscore.hong-yi.me/` returns
+`HTTP/1.1 200 OK` and the `X-Vercel-Cache: PRERENDER` header. Without
+the alias, requests to the `vercel.app` URLs are inaccessible to
+anyone outside the Vercel org. Fork developers whose Vercel account is
+not behind SSO can skip this step.
