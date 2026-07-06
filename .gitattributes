@@ -1,3 +1,5 @@
-# Normalize line endings so queue/worker files don't show phantom diffs
-# across machines. Text files use LF in the repo; Git handles checkout.
 * text=auto eol=lf
+*.md linguist-documentation=true
+skills/** linguist-generated=true
+docs/** linguist-generated=true
+templates/** linguist-generated=true

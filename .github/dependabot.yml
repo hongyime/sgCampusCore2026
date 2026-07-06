@@ -1,0 +1,83 @@
+# CampusCore Dependabot config.
+#
+# Locked to PATCH-ONLY bumps because Session 3 lost half a day to
+# auto-merged major bumps (Clerk v6 → v7, Next 15 → 16, resend 4 → 6,
+# eslint 9 → 10, fast-check 3 → 4) that all broke `next build` in
+# incompatible ways. Major/minor bumps for this stack need an
+# explicit migration task per AGENTS.md § "Approval Checkpoints"
+# (any new third-party behavior beyond the current stack requires
+# human sign-off).
+#
+# We only track two ecosystems this repo actually uses:
+#   - npm      (package.json + package-lock.json)
+#   - github-actions (workflow YAMLs)
+#
+# The multi-ecosystem template from the source repo is deliberately
+# removed — the other 15 ecosystems (dotnet-sdk, bun, bundler, cargo,
+# composer, conda, devcontainers, docker, docker-compose, gomod,
+# gradle, helm, maven, nuget, pip, terraform) do not apply here and
+# only generate noise.
+
+version: 2
+updates:
+  # ── npm (Next.js + Convex + Clerk + Resend + ONNX + fast-check) ─
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "15:00"
+      timezone: "Asia/Singapore"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "npm"
+    # Patch-only: block every major AND minor bump. Anything larger
+    # than a patch needs a migration task (breaking-change review,
+    # AGENTS.md approval).
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+          - "version-update:semver-minor"
+    # Group related patch bumps into one PR to reduce churn.
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      clerk:
+        patterns:
+          - "@clerk/*"
+      next:
+        patterns:
+          - "next"
+          - "eslint-config-next"
+      eslint:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+      types:
+        patterns:
+          - "@types/*"
+
+  # ── GitHub Actions (workflow file `uses:` refs) ─────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "15:00"
+      timezone: "Asia/Singapore"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "github-actions"
+    # Actions are less risky to bump but we still want to see majors
+    # before they land, so block only major bumps here.
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
