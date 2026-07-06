@@ -10,12 +10,16 @@
 // not hand-roll a verifier because Convex already does exactly this, and
 // AGENTS.md asks us not to reinvent a primitive we can't explain more simply.
 //
-// CLERK_JWT_ISSUER_DOMAIN is set as a CONVEX environment variable (via
-// `npx convex env set` or the Convex dashboard), not via Next's .env.local.
+// CLERK_FRONTEND_API_URL is set as a CONVEX environment variable (per Convex's
+// Clerk integration guide) — set with `npx convex env set CLERK_FRONTEND_API_URL
+// https://<your-clerk-domain>`, NOT via Next's .env.local. `applicationID` must
+// match the name of the JWT template you created in the Clerk dashboard
+// (Configure → JWT Templates → "New template" → "Convex" preset defaults it to
+// "convex").
 const authConfig = {
   providers: [
     {
-      domain: process.env.CLERK_JWT_ISSUER_DOMAIN,
+      domain: process.env.CLERK_FRONTEND_API_URL,
       applicationID: "convex",
     },
   ],
