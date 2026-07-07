@@ -36,6 +36,102 @@
       protection and the custom domain" for the aliasing curl. This is
       an operational chore, not a code change.
 
+## Session 3 Addendum residuals (added 2026-07-06/07)
+
+- [x] **postcss XSS via `npm overrides`** — RESOLVED 2026-07-07.
+      Dependabot alert #1 (`postcss < 8.5.10`, XSS in unescaped
+      `</style>` in the CSS stringifier, medium severity). Applied
+      `"overrides": { "postcss": "^8.5.10" }` to `package.json`;
+      lockfile re-resolved postcss to `8.5.16`. Same pass picked up
+      `convex@1.42.1` and `ws@8.21.0` via natural re-resolve. Local
+      `npm audit --audit-level=moderate` reports zero. Bundled with
+      the fix: added `next-env.d.ts` to `eslint.config.mjs` ignores
+      (the Next 15.5.19 → 15.5.20 bump auto-added a third triple-slash
+      reference that `next/typescript`'s
+      `@typescript-eslint/triple-slash-reference` rule flags as an
+      error; Next's own docs say the file should not be linted).
+- [ ] **Old `CLERK_JWT_ISSUER_DOMAIN` still set in Convex env** —
+      Cleanup task. Convex env has both `CLERK_JWT_ISSUER_DOMAIN` and
+      `CLERK_FRONTEND_API_URL` set to the same value, so no runtime
+      effect. Remove the old key with
+      `npx convex env remove CLERK_JWT_ISSUER_DOMAIN` on both
+      `elated-dogfish-303` and the project-level preview defaults. Not
+      urgent.
+- [ ] **`hong-yi.me` apex not verified as a Resend sender** — Escalation
+      currently `To:`-addresses `hello@hong-yi.me`, which works fine
+      (Resend does not validate the recipient domain). Only the
+      `sgcampuscore.hong-yi.me` subdomain is a verified `From:` sender.
+      If a future flow ever needs to `From:` the apex, verify the apex
+      domain in the Resend dashboard first.
+- [ ] **Clerk Google social connection is on shared dev credentials** —
+      Operator enabled Google + Microsoft social connections using
+      Clerk's shared development credentials. Before the app goes live
+      on a production Clerk instance, custom Google Cloud OAuth client
+      credentials (and equivalent for Microsoft) must be provisioned
+      and configured in the Clerk dashboard. Not urgent for Preview.
+- [ ] **postcss 8.4.31 → 8.5.10 divergence from Next's tested tree** —
+      Accepted risk once the `overrides` patch lands. Documented in
+      STATUS.md § Session 3 Addendum § "postcss XSS via npm overrides."
+      Reassess when Next 15.5.x publishes a patch release that bumps
+      its postcss pin natively; the `overrides` entry can then be
+      removed.
+- [ ] **Dependabot auto-merge is DISABLED** — Both
+      `.github/workflows/auto-merge-bots.yml` and
+      `dependabot-auto-merge.yml` were deleted during the addendum
+      cleanup (they used `gh pr merge --admin --squash`, which bypassed
+      branch protection and caused 13 breaking merges to `main`).
+      Every bot PR is now manual-review. Operator must periodically
+      drain the open queue. First cycle after the postcss fix commits.
+
+## Clerk hardening (added 2026-07-07)
+
+- [ ] **`"Development mode"` watermark on the account portal.** The
+      current Clerk instance is `renewed-fawn-5.clerk.accounts.dev` —
+      a dev instance with `pk_test_*` / `sk_test_*` keys, which is
+      why every account portal page carries a "Secured by Clerk ·
+      Development mode" watermark. Creating a Clerk **production
+      instance** (Clerk Dashboard → top-right instance switcher →
+      "Create production instance"), swapping in the resulting
+      `pk_live_*` / `sk_live_*` keys in Vercel Production scope, and
+      pointing DNS at the production Clerk frontend URL will remove
+      the watermark. Blocked on the "Prod Convex deploy key"
+      residual — both belong to a future "go to Production" session,
+      not Session 3.
+- [ ] **User can add secondary email addresses via the account
+      portal.** Clerk's built-in `<UserButton />` account portal
+      exposes an "Add email address" affordance by default. This does
+      NOT grant admin (the middleware Admin_Gate in `config/school.ts`
+      only trusts the **primary** email against the allowlist and the
+      staff-domain gate), so it's harmless today, but disable it at
+      Clerk Dashboard → User & authentication → Email, phone, username
+      → toggle **"Users can add additional email addresses to their
+      account"** OFF before production.
+- [ ] **User can connect multiple Google (and Microsoft) social
+      accounts.** Same portal, same story. Not exploitable (only
+      primary email is checked), but tighten Clerk Dashboard → User &
+      authentication → SSO connections → each provider → Advanced →
+      toggle **"Can be used to sign in AND connect to existing
+      users"** OFF if you only want it as a sign-in method, not a
+      "link another identity" method.
+- [ ] **User can create per-account API keys via the portal.** Clerk
+      exposes a per-user Machine-to-Machine token surface ("API keys"
+      tab in the account portal). Almost certainly not wanted for
+      campus users. Disable at Clerk Dashboard → User & authentication
+      → Machine-to-machine tokens (or "API keys" — Clerk's UI may
+      name it either way in dev vs prod instances) → toggle OFF.
+      Alternatively hide the tab via Customization → Account Portal →
+      disable the "API keys" section.
+- [ ] **Restrict signups to school domain at the Clerk dashboard
+      level.** Currently the middleware Admin_Gate is
+      defense-in-depth — Clerk itself accepts any email address at
+      signup. For a production Clerk instance, configure Clerk
+      Dashboard → User & authentication → Restrictions → **Allowlist
+      email domains** → add `@smu.edu.sg` (for the SMU deployment;
+      each fork does this for its own school's domains). This is the
+      AGENTS.md § "Clerk auth is restricted to `@smu.edu.sg` at the
+      dashboard level" requirement — currently NOT enforced on the
+      dev instance.
+
 ## Credentials & Keys (stubbed via .env.example)
 - [ ] **Telegram** — bot token (via @BotFather) + webhook URL registration
       (`setWebhook` to the deployed Convex HTTP endpoint). Code path stubbed.

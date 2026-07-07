@@ -3,6 +3,129 @@
 > Overwritten at the end of every work session.
 > A stranger agent should be able to resume from this file in one read.
 
+## Session 3 Addendum — Post-Close (2026-07-06/07)
+
+This is a post-close addendum to Session 3, not a new session. Session 3
+closed with all 26 tasks ticked; the Preview at
+`sgcampuscore.hong-yi.me` was green. Between close and now, four events
+mattered: Resend escalation was wired end-to-end, one Convex env var was
+renamed, a run of 13 breaking Dependabot merges had to be reverted and
+the auto-merge machinery removed, and a postcss XSS advisory is being
+patched via an npm `overrides` entry (in flight at doc-write time).
+
+### 1. Resend escalation wired end-to-end
+
+- Operator rotated to a full-access Resend API key. `GET /domains`
+  returned one verified domain, `sgcampuscore.hong-yi.me`
+  (`ap-northeast-1`, sending enabled). The apex `hong-yi.me` is NOT a
+  verified sender — only the subdomain.
+- Set on the `elated-dogfish-303` preview deployment and the
+  project-level preview defaults (via PAT because preview deploy keys
+  can't write env): `RESEND_API_KEY` (rotated value),
+  `RESEND_FROM_EMAIL=alerts@sgcampuscore.hong-yi.me`,
+  `RESEND_ESCALATION_TO=hello@hong-yi.me`.
+- Mirrored into `.env.convex.local` on both the UNC repo and
+  Local_Mirror. `.env.local` untouched — Resend is Convex-only.
+- Escalation module (`convex/lib/resend.ts`) now has full config; the
+  stub-mode toggle will resolve to real send on next invocation.
+
+### 2. CLERK_FRONTEND_API_URL rename
+
+- Convex Clerk integration guide uses `CLERK_FRONTEND_API_URL` as the
+  canonical env var name for the JWKS domain.
+- Renamed `process.env.CLERK_JWT_ISSUER_DOMAIN` →
+  `process.env.CLERK_FRONTEND_API_URL` in `convex/auth.config.ts`.
+- Updated `.env.example` and `.env.convex.local` (UNC and mirror) to
+  match. Convex env has both variables set to the same value, so no
+  runtime effect. Old var can be removed via
+  `npx convex env remove CLERK_JWT_ISSUER_DOMAIN` in a future cleanup.
+- `applicationID: "convex"` in `auth.config.ts` unchanged — that is the
+  Clerk JWT template name and the operator confirmed the template
+  exists in the Clerk dashboard.
+
+### 3. Dependabot cleanup (major event)
+
+Between Session 3 close and this addendum, 13 Dependabot merge commits
+auto-landed to `origin/main`. Every one caused a Vercel build ERROR:
+`@clerk/nextjs` 6.39.5 → 7.5.13, `next` 15.5.19 → 16.2.10, `resend`
+4.8.0 → 6.17.1, `eslint` 9.39.4 → 10.6.0, `fast-check` 3.23.2 → 4.8.0,
+plus several action bumps and a repo-config sync commit. Root cause:
+two workflows (`auto-merge-bots.yml`, `dependabot-auto-merge.yml`) used
+`gh pr merge --admin --squash`, which bypasses branch protection and
+required checks.
+
+Actions taken:
+
+- Force-pushed `main` with `--force-with-lease` from local `1475d8c`.
+  Composition: `21f60a9` (Session 3 Task 23 codegen commit, known-green),
+  then `dc92e23` (CLERK_FRONTEND_API_URL rename), then `e259037`
+  (session-3 residuals docs), then `1475d8c` (cherry-picked governance
+  overlay from the incoming `5ead696` sync commit, minus the two
+  auto-merge workflows).
+- Deleted `auto-merge-bots.yml` and `dependabot-auto-merge.yml`. Bot
+  PRs now stay open for manual review.
+- Replaced `.github/dependabot.yml` with an npm-and-actions-only,
+  patch-only version. Blocks all major and minor bumps via
+  `ignore: update-types: [semver-major, semver-minor]`. Grouped bumps
+  for react-ecosystem, clerk, next, eslint, types.
+- Rewrote `SECURITY.md` to remove the stale `--admin auto-merge`
+  narrative; the new version explicitly states bot PRs are NOT
+  auto-merged.
+- Restored the real `agents.md` — the sync commit's uppercase
+  `AGENTS.md` clobbered our real CampusCore-specific `agents.md` on
+  Windows' case-insensitive FS. Removed the sync template file; kept
+  our real one.
+
+Post-push: Vercel git integration built the new HEAD, `dpl_8RnZfYds8T
+NEKbgrBgzPKCCi5UyE` reached READY, alias `sgcampuscore.hong-yi.me`
+repointed. Live and green.
+
+Dependabot PR queue drain (7 open at push time):
+
+- Closed: PR#20 (typescript 5→6, major), PR#18 (@types/node 22→26,
+  major), PR#1 (ws 8.20.1→8.21.0, superseded by conflicts).
+- Merged (patch-safe): PR#26 (prettier 3.8.4→3.8.5), PR#25 (Next patch
+  group), PR#24 (trufflehog patch), PR#23 (scorecard patch).
+- Each merge triggered a Vercel git-integration deploy. New HEAD after
+  all merges: `3920737 Bump the next group with 2 updates (#25)`.
+  Latest READY at that SHA.
+
+Vercel Hobby-plan daily-deploy quota (100/day) was exhausted during
+this pass — irrelevant, git-integration builds don't count against the
+API quota.
+
+### 4. postcss XSS via npm overrides (landed)
+
+- Dependabot alert #1: `postcss < 8.5.10` XSS via unescaped `</style>`
+  in the stringifier. Medium severity.
+- `next@15.5.20` exact-pins `postcss: 8.4.31`, so npm can't naturally
+  upgrade.
+- Applied `"overrides": { "postcss": "^8.5.10" }` in `package.json`
+  and regenerated the lockfile — npm resolved postcss to `8.5.16`
+  (well above the ^8.5.10 override floor). Same lockfile pass also
+  picked up `convex@1.42.1` and `ws@8.21.0` via natural re-resolve
+  (both minor/patch, non-breaking).
+- Local `npm audit --audit-level=moderate` reports zero moderate+
+  vulns after the override. Local `npm run build` exits 0.
+- Rationale for `overrides` over waiting for a Next bump: real vuln,
+  `overrides` is npm's designed mechanism for this case, postcss 8.x
+  → 8.y is non-breaking per postcss maintainers, and the divergence
+  from Next's tested tree (8.4.31 → 8.5.10 → 8.5.16) is a maintenance
+  patch of a stringifier code path Next does not exercise.
+
+### 5. eslint next-env.d.ts fix (bundled with §4)
+
+Next 15.5.19 → 15.5.20 auto-added a third `/// <reference path=".next/types/routes.d.ts" />`
+line to the generated `next-env.d.ts`. `eslint-config-next`'s
+`next/typescript` preset's `@typescript-eslint/triple-slash-reference`
+rule flags `path=` forms as errors, which made `npm run lint` fail on
+main with an untouched Next-generated file. Fix: add `next-env.d.ts`
+to `eslint.config.mjs` ignores, matching Next's own documented guidance
+("this file is auto-generated and should not be edited or linted").
+Not a lint-rule downgrade — the rule still catches user-authored
+triple-slashes elsewhere. CI (`ci.yml`) never ran `npm run lint`, only
+`npm run build`, which is why this wasn't caught by Vercel.
+
 ## As of: Session 3 — unblock, promo landing, first Vercel Preview
 
 This session took the repo from "can't build because Convex codegen is
