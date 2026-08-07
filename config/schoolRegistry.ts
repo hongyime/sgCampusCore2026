@@ -72,7 +72,7 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     staffDomains: ["smu.edu.sg"],
     verified: {
       at: 1751587200000, // 2026-07-04 UTC
-      by: "bryanseah234 (ground-truth from repo docs)",
+      by: "hongyime (ground-truth from repo docs)",
       source: "tech_design.md § Authentication; prd.md § Users and Roles",
     },
   },
@@ -88,7 +88,7 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     staffDomains: ["nus.edu.sg"],
     verified: {
       at: 1751587200000,
-      by: "bryanseah234 (ground-truth from repo docs)",
+      by: "hongyime (ground-truth from repo docs)",
       source: ".kiro/specs/multi-school-template-hardening/design.md § Auth Model",
     },
   },
@@ -105,7 +105,7 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     staffDomains: ["ntu.edu.sg"],
     verified: {
       at: 1751587200000,
-      by: "bryanseah234 (NTU IT service catalogue)",
+      by: "hongyime (NTU IT service catalogue)",
       source: "https://www.ntu.edu.sg/cits/services",
     },
   },
@@ -121,7 +121,7 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     staffDomains: ["sutd.edu.sg"],
     verified: {
       at: 1751587200000,
-      by: "bryanseah234 (SUTD MyMail student mail portal)",
+      by: "hongyime (SUTD MyMail student mail portal)",
       source: "https://mymail.sutd.edu.sg",
     },
   },
@@ -138,7 +138,7 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     staffDomains: ["singaporetech.edu.sg"],
     verified: {
       at: 1751587200000, // 2026-07-04 UTC
-      by: "bryanseah234 (web-search)",
+      by: "hongyime (web-search)",
       source: "https://sitvpn.singaporetech.edu.sg/global-protect/login.esp",
     },
   },
@@ -155,7 +155,7 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     staffDomains: ["suss.edu.sg"],
     verified: {
       at: 1751587200000,
-      by: "bryanseah234 (web-search)",
+      by: "hongyime (web-search)",
       source: "https://sussprobono.com/",
     },
   },
@@ -173,7 +173,7 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     staffDomains: ["np.edu.sg"],
     verified: {
       at: 1751587200000,
-      by: "bryanseah234 (web-search)",
+      by: "hongyime (web-search)",
       source: "https://www.np.edu.sg/about-np/our-story/smart-campus/digital-certificates",
     },
   },
@@ -188,7 +188,7 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     staffDomains: ["sp.edu.sg"],
     verified: {
       at: 1751587200000,
-      by: "bryanseah234 (web-search)",
+      by: "hongyime (web-search)",
       source: "https://www.sp.edu.sg/student-services/it-services",
     },
   },
@@ -203,7 +203,7 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     staffDomains: ["tp.edu.sg"],
     verified: {
       at: 1751587200000,
-      by: "bryanseah234 (web-search)",
+      by: "hongyime (web-search)",
       source: "https://virtualcampus.tp.edu.sg/p10/students-union/",
     },
   },
@@ -219,7 +219,7 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     staffDomains: ["nyp.edu.sg"],
     verified: {
       at: 1751587200000,
-      by: "bryanseah234 (web-search)",
+      by: "hongyime (web-search)",
       source: "https://mynypportal.nyp.edu.sg/en/resources/it-related-matters/nyp-intranet-internet-acceptance-usage-policy.html",
     },
   },
@@ -252,7 +252,7 @@ export const SCHOOL_REGISTRY: readonly SchoolEntry[] = [
     staffDomains: ["ite.edu.sg"],
     verified: {
       at: 1751587200000,
-      by: "bryanseah234 (web-search)",
+      by: "hongyime (web-search)",
       source: "https://www.ite.edu.sg/e-services-and-forms",
     },
   },

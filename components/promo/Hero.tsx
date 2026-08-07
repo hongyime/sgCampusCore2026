@@ -14,7 +14,7 @@ import Link from "next/link";
 // The whole `components/promo/` tree can be deleted by a fork in a single
 // commit (Req 7.7); nothing in the SMU app routes imports from here.
 
-const REPO_URL = "https://github.com/bryanseah234/sgCampusCore2026";
+const REPO_URL = "https://github.com/hongyime/sgCampusCore2026";
 
 export default function Hero() {
   return (

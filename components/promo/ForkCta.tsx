@@ -11,9 +11,9 @@
 // The repo URL is the canonical CampusCore template repository, matching
 // the link already used in `app/page.tsx`.
 
-const REPO_URL = "https://github.com/bryanseah234/sgCampusCore2026";
+const REPO_URL = "https://github.com/hongyime/sgCampusCore2026";
 const DEPLOYMENT_URL =
-  "https://github.com/bryanseah234/sgCampusCore2026/blob/main/DEPLOYMENT.md";
+  "https://github.com/hongyime/sgCampusCore2026/blob/main/DEPLOYMENT.md";
 
 function GitHubIcon() {
   return (

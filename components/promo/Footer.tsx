@@ -13,9 +13,9 @@
 // without cloning first. Kept case-lowercase ("agents.md") to match the
 // actual filename on disk.
 
-const REPO_URL = "https://github.com/bryanseah234/sgCampusCore2026";
+const REPO_URL = "https://github.com/hongyime/sgCampusCore2026";
 const AGENTS_URL =
-  "https://github.com/bryanseah234/sgCampusCore2026/blob/main/agents.md";
+  "https://github.com/hongyime/sgCampusCore2026/blob/main/agents.md";
 
 export default function Footer() {
   return (

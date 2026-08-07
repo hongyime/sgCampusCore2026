@@ -59,7 +59,7 @@ Create these accounts before touching the repo. Each is on a free tier as
 listed in `AGENTS.md`; do not swap for paid tiers or new vendors without
 an AGENTS.md-scoped approval.
 
-1. **GitHub** — fork of `github.com/bryanseah234/sgCampusCore2026`. The
+1. **GitHub** — fork of `github.com/hongyime/sgCampusCore2026`. The
    fork is the source of truth Vercel builds from.
 2. **Convex** — one project per school (deploy keys, function hosting,
    scheduler). Generate a **Preview** deploy key (`preview:` prefix) for
@@ -603,7 +603,7 @@ Once the four authorizations above are in place, the engineer performs
 the following seven steps once per school. This is the same sequence
 codified in design.md § LLD-7, re-stated here for the runbook reader.
 
-1. **(a) Fork the repo.** Fork `github.com/bryanseah234/sgCampusCore2026`
+1. **(a) Fork the repo.** Fork `github.com/hongyime/sgCampusCore2026`
    into the school's GitHub organization. All subsequent steps operate
    against the fork.
 2. **(b) Verify or add the school's `SchoolEntry`.** Check
@@ -690,7 +690,7 @@ step against the deployment platforms.
   section below (§5.2 in the spec's task order) for the full
   onboard/rotate/revoke procedure and the design rationale.
 - **Periodic upstream pull for security fixes and Registry updates.**
-  Pull from `github.com/bryanseah234/sgCampusCore2026` on a defined
+  Pull from `github.com/hongyime/sgCampusCore2026` on a defined
   cadence (monthly is typical) to receive security fixes, dependency
   bumps, and new or corrected `SchoolEntry` entries. New Registry
   entries are additive; a downstream deployment only *uses* an entry
