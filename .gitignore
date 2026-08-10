@@ -73,3 +73,13 @@ skills/
 skills-lock.json
 docs/
 templates/
+.env.*
+node_modules/
+.venv/
+venv/
+dist/
+build/
+.next/
+coverage/
+__pycache__/
+.pytest_cache/
