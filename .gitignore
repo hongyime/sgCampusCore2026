@@ -44,9 +44,27 @@ project-info.json
 # vercel — .vercel/ links a local checkout to a Vercel project; never commit
 .vercel
 
+templates/
+.env.*
+node_modules/
+.venv/
+venv/
+dist/
+build/
+.next/
+coverage/
+__pycache__/
+.pytest_cache/
+
 # AI / editor dot directories (managed via sourcerepo)
 .*
 !.github/
+!.agents/
+.agents/*
+!.agents/STATE.md
+!.agents/JOURNAL.md
+!.agents/handoffs/
+!.agents/handoffs/**
 !.gitignore
 !.gitattributes
 !.gitmodules
@@ -72,14 +90,4 @@ project-info.json
 skills/
 skills-lock.json
 docs/
-templates/
-.env.*
-node_modules/
-.venv/
-venv/
-dist/
-build/
-.next/
-coverage/
-__pycache__/
-.pytest_cache/
+# End AI / editor dot directories (managed via sourcerepo)
