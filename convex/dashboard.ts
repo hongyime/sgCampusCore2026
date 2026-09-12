@@ -1,18 +1,23 @@
 import { query, mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
+import { isSchoolMemberEmail } from "../config/school";
 
 // TASK-31: Public dashboard ticket list
 export const getTickets = query({
-  args: { status: v.optional(v.union(v.literal("open"), v.literal("resolved"))) },
+  args: {
+    status: v.optional(v.union(v.literal("open"), v.literal("resolved"))),
+  },
   handler: async (ctx, args) => {
     let ticketsQuery = ctx.db.query("tickets").order("desc");
-    
+
     if (args.status) {
-      ticketsQuery = ticketsQuery.filter((q) => q.eq(q.field("status"), args.status));
+      ticketsQuery = ticketsQuery.filter((q) =>
+        q.eq(q.field("status"), args.status),
+      );
     }
 
     const tickets = await ticketsQuery.take(50);
-    
+
     // Enrich with egress timing for SBL calculations (TASK-32)
     const enriched = await Promise.all(
       tickets.map(async (t) => {
@@ -20,12 +25,12 @@ export const getTickets = query({
           .query("telegram_egress_queue")
           .withIndex("by_ticket", (q) => q.eq("ticket_id", t._id))
           .unique();
-          
+
         return {
           ...t,
           egress_cleared_at: egress?.egress_cleared_at || null,
         };
-      })
+      }),
     );
 
     return enriched;
@@ -37,13 +42,14 @@ export const getMetrics = query({
   args: {},
   handler: async (ctx) => {
     const tickets = await ctx.db.query("tickets").collect();
-    
+
     let totalTTR = 0;
     let resolvedCount = 0;
     let totalSBL = 0;
     let sblCount = 0;
-    
-    const locationBreakdown: Record<string, { total: number, open: number }> = {};
+
+    const locationBreakdown: Record<string, { total: number; open: number }> =
+      {};
 
     for (const t of tickets) {
       // Breakdown by location
@@ -56,7 +62,7 @@ export const getMetrics = query({
 
       // TTR computation
       if (t.status === "resolved" && t.resolved_at) {
-        totalTTR += (t.resolved_at - t.created_at);
+        totalTTR += t.resolved_at - t.created_at;
         resolvedCount++;
       }
 
@@ -65,9 +71,9 @@ export const getMetrics = query({
         .query("telegram_egress_queue")
         .withIndex("by_ticket", (q) => q.eq("ticket_id", t._id))
         .unique();
-        
+
       if (egress && egress.egress_cleared_at) {
-        totalSBL += (egress.egress_cleared_at - t.created_at);
+        totalSBL += egress.egress_cleared_at - t.created_at;
         sblCount++;
       }
     }
@@ -84,29 +90,37 @@ export const getMetrics = query({
 
 // TASK-34: Volunteer resolution workflow
 export const resolveTicket = mutation({
-  args: { 
+  args: {
     ticketId: v.id("tickets"),
-    userId: v.string(), // Volunteer Clerk ID
+    // Older cached clients may still send this. Attribution always uses auth.
+    userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (
+      !identity ||
+      identity.emailVerified === false ||
+      !isSchoolMemberEmail(identity.email ?? "")
+    ) {
+      throw new ConvexError(
+        "Sign in with an institutional account for this school to resolve tickets.",
+      );
+    }
     const ticket = await ctx.db.get(args.ticketId);
-    if (!ticket) throw new Error("Ticket not found");
-    if (ticket.status === "resolved") throw new Error("Already resolved");
+    if (!ticket) throw new ConvexError("Ticket not found.");
+    if (ticket.status === "resolved")
+      throw new ConvexError("This ticket has already been resolved.");
 
+    const resolvedAt = Date.now();
     await ctx.db.patch(args.ticketId, {
       status: "resolved",
-      resolved_at: Date.now(),
-      // In a real schema we'd store the resolver ID to compute leaderboard
-      // But we will patch it via a new "resolver_id" field if it isn't strictly typed out.
-      // Wait, schema.ts doesn't have resolver_id, so we can't patch it unless we update schema.
+      resolved_at: resolvedAt,
     });
 
-    // To compute leaderboard, we could write an event or just use a new table.
-    // For now we will insert into the `resolutions` table.
     await ctx.db.insert("resolutions", {
       ticket_id: args.ticketId,
-      resolver_id: args.userId,
-      resolved_at: Date.now(),
+      resolver_id: identity.subject,
+      resolved_at: resolvedAt,
     });
   },
 });
@@ -117,7 +131,7 @@ export const getLeaderboard = query({
   handler: async (ctx) => {
     const resolutions = await ctx.db.query("resolutions").collect();
     const counts: Record<string, number> = {};
-    
+
     for (const res of resolutions) {
       counts[res.resolver_id] = (counts[res.resolver_id] || 0) + 1;
     }

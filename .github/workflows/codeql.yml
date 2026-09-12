@@ -40,6 +40,7 @@ on:
       - "**/package-lock.json"
       - "**/requirements*.txt"
       - "**/pyproject.toml"
+      - ".github/workflows/codeql.yml"
   schedule:
     - cron: "0 14 * * 3" # Weekly Wed 10 PM SGT (off Monday spike)
 
@@ -71,6 +72,11 @@ jobs:
         run: |
           set -e
           langs=()
+          # This workflow owns CodeQL scanning. GitHub default setup must be
+          # disabled because it rejects advanced-workflow SARIF uploads.
+          if [ -d .github/workflows ]; then
+            langs+=("actions")
+          fi
           if find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.mjs" -o -name "*.cjs" -o -name "*.vue" \) \
               -not -path "./node_modules/*" -not -path "./.git/*" -print -quit | grep -q .; then
             langs+=("javascript-typescript")

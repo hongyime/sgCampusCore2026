@@ -12,6 +12,7 @@ on:
       - "**.tsx"
       - "**.js"
       - "**.jsx"
+      - "**.mjs"
       - "**.vue"
       - "**.css"
       - "**.scss"
@@ -23,6 +24,8 @@ on:
       - "tailwind.config.*"
       - "vite.config.*"
       - "tsconfig*.json"
+      - "vercel.json"
+      - ".github/workflows/ci.yml"
 
 concurrency:
   group: build-${{ github.workflow }}-${{ github.ref }}
@@ -86,7 +89,22 @@ jobs:
 
       - name: Run build
         if: steps.detect.outputs.has_build == 'true'
+        env:
+          # Format-valid public fixtures for static prerendering only. Vercel
+          # checks the real frontend/backend authorization settings separately.
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_c3ludGhldGljLmNsZXJrLmFjY291bnRzLmRldiQ=
+          NEXT_PUBLIC_CONVEX_URL: https://synthetic.convex.cloud
         run: ${{ steps.detect.outputs.pm == 'npm' && 'npm run build' || format('{0} run build', steps.detect.outputs.pm) }}
+
+      - name: Check authorization and existing contracts
+        if: steps.detect.outputs.has_build == 'true'
+        run: |
+          npm run test:unit
+          npm run lint
+          npm run typecheck
+          node scripts/verify-env-boundary.mjs
+          node scripts/verify-deletable-promo.mjs
+          node scripts/verify-no-committed-codegen.mjs
 
       - name: Build succeeded
         if: steps.detect.outputs.has_build == 'true'
