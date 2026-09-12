@@ -2,7 +2,7 @@
 
 School membership now gates ticket resolution in Convex; the resolver comes from the signed identity, including requests from older cached clients. Emergency reads and acknowledgements require an allowlisted staff administrator. An explicitly unverified email is rejected; missing optional verification claims retain the existing reliance on Clerk's configured institutional verification policy. Repeated acknowledgements preserve their original timestamp.
 
-Anonymous pages skip emergency subscriptions, and action failures/pending state are visible. Vercel checks matching school, nonempty administrator allowlist and Clerk issuer configuration before deploying the backend. The current live site uses Convex preview/main, as established by its deployment build logs; this repair does not migrate or recreate that database.
+Anonymous pages skip emergency subscriptions, and action failures/pending state are visible. Vercel checks matching school, nonempty administrator allowlist and Clerk issuer configuration before deploying the backend. The live site uses Convex preview/main. Before this release, that preview could not be found using the existing project key; its former famous-mallard-893 hostname returns 404. The standard deployment flow allocated energetic-bird-10 for main. Its five-day expiration has now been cleared through the management API, with deployment class, region, reference and URL preserved. Historical data from the unavailable backend has not been recovered or verified; do not describe the replacement as proof of data preservation. The current public metrics report zero tickets.
 
 The repository CodeQL workflow now covers Actions as well as JavaScript/TypeScript. GitHub default setup is disabled to resolve its rejection of advanced-workflow analysis uploads; scanning continues through the checked repository workflow.
 
@@ -329,3 +329,6 @@ Unchanged this session:
 - Legal-escalation endpoint remains a stub (`app/api/legal-escalation/route.ts`).
 - No new third-party dependency added. `fast-check` was already in
   `devDependencies` from a prior spec; nothing new landed this session.
+
+
+Maintenance deployment continuity: Convex preview deployments normally expire after five days on Free/Starter. Keep the live main database non-expiring while planning the lossless Supabase migration. Feature previews may retain their normal expiry. Avoid deleting/recreating main, and verify its hostname and expiry after future releases. See https://docs.convex.dev/production/multiple-deployments and https://docs.convex.dev/management-api/update-deployment.
