@@ -4,6 +4,8 @@ School membership now gates ticket resolution in Convex; the resolver comes from
 
 Anonymous pages skip emergency subscriptions, and action failures/pending state are visible. Vercel checks matching school, nonempty administrator allowlist and Clerk issuer configuration before deploying the backend. The current live site uses Convex preview/main, as established by its deployment build logs; this repair does not migrate or recreate that database.
 
+The repository CodeQL workflow now covers Actions as well as JavaScript/TypeScript. GitHub default setup is disabled to resolve its rejection of advanced-workflow analysis uploads; scanning continues through the checked repository workflow.
+
 Validation uses actual registered handlers with synthetic database/auth services, plus the existing unit/property and build boundaries. No live tickets or outbound messages are used. Full authenticated SSO, public ticket-field minimization, scalable metrics/leaderboard queries, alarm asset/styling review and the eventual Supabase migration remain follow-up work. Queue, ingestion, moderation and emergency thresholds retain their source.
 
 # STATUS — CampusCore
