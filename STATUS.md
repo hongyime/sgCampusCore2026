@@ -1,3 +1,11 @@
+## Maintenance 2026-09-13 — backend authorization
+
+School membership now gates ticket resolution in Convex; the resolver comes from the signed identity, including requests from older cached clients. Emergency reads and acknowledgements require an allowlisted staff administrator. An explicitly unverified email is rejected; missing optional verification claims retain the existing reliance on Clerk's configured institutional verification policy. Repeated acknowledgements preserve their original timestamp.
+
+Anonymous pages skip emergency subscriptions, and action failures/pending state are visible. Vercel checks matching school, nonempty administrator allowlist and Clerk issuer configuration before deploying the backend. The current live site uses Convex preview/main, as established by its deployment build logs; this repair does not migrate or recreate that database.
+
+Validation uses actual registered handlers with synthetic database/auth services, plus the existing unit/property and build boundaries. No live tickets or outbound messages are used. Full authenticated SSO, public ticket-field minimization, scalable metrics/leaderboard queries, alarm asset/styling review and the eventual Supabase migration remain follow-up work. Queue, ingestion, moderation and emergency thresholds retain their source.
+
 # STATUS — CampusCore
 
 > Overwritten at the end of every work session.

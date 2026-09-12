@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useUser } from "@clerk/nextjs";
-import { useMutation, useQuery } from "convex/react";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import { ConvexError } from "convex/values";
 import { AuthControls } from "@/components/AuthControls";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -71,7 +71,9 @@ export default function DashboardPage() {
 
 function DashboardContent() {
   const [filter, setFilter] = useState<TicketFilter | undefined>();
-  const { user } = useUser();
+  const { isAuthenticated } = useConvexAuth();
+  const [resolvingId, setResolvingId] = useState<Id<"tickets"> | null>(null);
+  const [resolveError, setResolveError] = useState<string | null>(null);
 
   const ticketsQuery = useQuery(api.dashboard.getTickets, { status: filter });
   const metrics = useQuery(api.dashboard.getMetrics);
@@ -84,14 +86,21 @@ function DashboardContent() {
     LocationStats
   >;
   const leaderboard = (leaderboardQuery ?? []) as LeaderboardEntry[];
-  const signedInUserId = user?.id;
 
   async function handleResolve(ticketId: Id<"tickets">) {
-    if (!signedInUserId) return;
+    if (!isAuthenticated || resolvingId) return;
+    setResolvingId(ticketId);
+    setResolveError(null);
     try {
-      await resolveTicket({ ticketId, userId: signedInUserId });
+      await resolveTicket({ ticketId });
     } catch (error: unknown) {
-      console.error("Failed to resolve ticket:", error);
+      setResolveError(
+        error instanceof ConvexError && typeof error.data === "string"
+          ? error.data
+          : "Could not resolve the ticket. Please try again.",
+      );
+    } finally {
+      setResolvingId(null);
     }
   }
 
@@ -111,11 +120,15 @@ function DashboardContent() {
             <p className="eyebrow">Live metrics</p>
             <div className="metric-row">
               <span>True TTR</span>
-              <strong>{metrics ? formatDuration(metrics.avgTtrMs) : "..."}</strong>
+              <strong>
+                {metrics ? formatDuration(metrics.avgTtrMs) : "..."}
+              </strong>
             </div>
             <div className="metric-row">
               <span>Broadcast latency</span>
-              <strong>{metrics ? formatDuration(metrics.avgSblMs) : "..."}</strong>
+              <strong>
+                {metrics ? formatDuration(metrics.avgSblMs) : "..."}
+              </strong>
             </div>
           </section>
 
@@ -166,7 +179,9 @@ function DashboardContent() {
                 <button
                   className={filter === status ? "filter active" : "filter"}
                   key={status}
-                  onClick={() => setFilter(filter === status ? undefined : status)}
+                  onClick={() =>
+                    setFilter(filter === status ? undefined : status)
+                  }
                   type="button"
                 >
                   {status}
@@ -175,6 +190,7 @@ function DashboardContent() {
             </div>
           </div>
 
+          {resolveError ? <p role="alert">{resolveError}</p> : null}
           {!ticketsQuery ? (
             <p className="muted">Loading realtime tickets...</p>
           ) : tickets.length === 0 ? (
@@ -184,7 +200,11 @@ function DashboardContent() {
               {tickets.map((ticket) => (
                 <article className="ticket-card" key={ticket._id}>
                   <div className="ticket-meta">
-                    <span className={ticket.priority_tier === 1 ? "tier one" : "tier"}>
+                    <span
+                      className={
+                        ticket.priority_tier === 1 ? "tier one" : "tier"
+                      }
+                    >
                       Tier {ticket.priority_tier}
                     </span>
                     <span>#{ticket._id}</span>
@@ -197,18 +217,24 @@ function DashboardContent() {
                     {ticket.egress_cleared_at ? (
                       <span>
                         Broadcast in{" "}
-                        {formatDuration(ticket.egress_cleared_at - ticket.created_at)}
+                        {formatDuration(
+                          ticket.egress_cleared_at - ticket.created_at,
+                        )}
                       </span>
                     ) : null}
                   </div>
                   {ticket.status === "open" ? (
                     <button
                       className="button button-primary"
-                      disabled={!signedInUserId}
+                      disabled={!isAuthenticated || resolvingId !== null}
                       onClick={() => void handleResolve(ticket._id)}
                       type="button"
                     >
-                      {signedInUserId ? "Claim & resolve" : "Sign in to resolve"}
+                      {resolvingId === ticket._id
+                        ? "Resolving..."
+                        : isAuthenticated
+                          ? "Claim & resolve"
+                          : "Sign in to resolve"}
                     </button>
                   ) : (
                     <span className="badge success">Resolved</span>

@@ -1,4 +1,4 @@
 {
-  "buildCommand": "npx convex deploy --cmd 'next build'",
+  "buildCommand": "npx convex deploy --cmd 'node scripts/verify-convex-auth-env.mjs && next build'",
   "installCommand": "npm ci"
 }
