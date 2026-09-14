@@ -116,7 +116,27 @@ export default defineSchema({
     ticket_id: v.id("tickets"),
     resolver_id: v.string(), // Clerk User ID
     resolved_at: v.number(),
+    // Derived receipt only; every original resolution field stays intact.
+    leaderboard_counted: v.optional(v.literal(true)),
   }).index("by_resolver", ["resolver_id"]),
+
+  leaderboard_totals: defineTable({
+    resolver_id: v.string(),
+    count: v.number(),
+    // Ascending index: greatest count first, then earliest contribution.
+    negative_count: v.number(),
+    first_created_at: v.number(),
+  })
+    .index("by_resolver", ["resolver_id"])
+    .index("by_rank", ["negative_count", "first_created_at", "resolver_id"]),
+
+  leaderboard_control: defineTable({
+    name: v.literal("v1"),
+    cursor: v.union(v.string(), v.null()),
+    complete: v.boolean(),
+    enabled: v.boolean(),
+    total: v.number(),
+  }).index("by_name", ["name"]),
 
   // Telegram deep-link pairing tokens (tech_design §1). 3-minute TTL,
   // single-use, redeemed by one atomic serializable mutation. Second

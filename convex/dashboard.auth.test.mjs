@@ -90,6 +90,10 @@ function context(identity = null, acknowledgedAt = null) {
   ]);
   const events = [];
   const access = [];
+  const tables = new Map([
+    [ticketId, "tickets"],
+    [escalationId, "critical_escalations"],
+  ]);
   const ctx = {
     auth: { getUserIdentity: async () => identity },
     db: {
@@ -103,10 +107,33 @@ function context(identity = null, acknowledgedAt = null) {
       },
       insert: async (table, row) => {
         access.push("insert");
-        events.push({ table, ...row });
+        const id = `${table}-${rows.size}`;
+        rows.set(id, { ...row, _id: id, _creationTime: Date.now() });
+        tables.set(id, table);
+        if (table === "resolutions") events.push({ table, ...row });
+        return id;
       },
       query: (table) => {
         access.push("query");
+        if (["leaderboard_control", "leaderboard_totals"].includes(table)) {
+          let matches = [...rows.values()].filter(
+            (row) => tables.get(row._id) === table,
+          );
+          return {
+            withIndex(_name, predicate) {
+              predicate({
+                eq(field, value) {
+                  matches = matches.filter((row) => row[field] === value);
+                },
+              });
+              return this;
+            },
+            async unique() {
+              assert.ok(matches.length <= 1);
+              return matches[0] ?? null;
+            },
+          };
+        }
         assert.equal(table, "critical_escalations");
         return {
           filter: (fn) => {

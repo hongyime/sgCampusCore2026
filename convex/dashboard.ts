@@ -2,6 +2,11 @@ import { query, mutation } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import { isSchoolMemberEmail } from "../config/school";
 import { ticketCategory } from "./schema";
+import {
+  countResolution,
+  leaderboardControl,
+  rankedVolunteers,
+} from "./lib/leaderboard";
 
 // TASK-31: Public dashboard ticket list
 export const getTickets = query({
@@ -140,11 +145,12 @@ export const resolveTicket = mutation({
       resolved_at: resolvedAt,
     });
 
-    await ctx.db.insert("resolutions", {
+    const resolutionId = await ctx.db.insert("resolutions", {
       ticket_id: args.ticketId,
       resolver_id: identity.subject,
       resolved_at: resolvedAt,
     });
+    await countResolution(ctx, (await ctx.db.get(resolutionId))!);
   },
 });
 
@@ -152,6 +158,10 @@ export const resolveTicket = mutation({
 export const getLeaderboard = query({
   args: {},
   handler: async (ctx) => {
+    const control = await leaderboardControl(ctx);
+    if (control?.enabled) return rankedVolunteers(ctx);
+    // Preserve the existing full-history view until the operator has compared
+    // all retained source rows with the derived totals and enabled the index.
     const resolutions = await ctx.db.query("resolutions").collect();
     const counts: Record<string, number> = {};
 
