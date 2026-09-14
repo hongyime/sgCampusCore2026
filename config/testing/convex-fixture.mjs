@@ -60,6 +60,10 @@ export function memoryDatabase(seed = {}) {
     by_name: ["name"],
     by_resolver: ["resolver_id"],
     by_rank: ["negative_count", "first_created_at", "resolver_id"],
+    by_ticket: ["ticket_id"],
+    by_shard: ["shard"],
+    by_location: ["location"],
+    by_location_shard: ["location", "shard"],
   };
   const beforeWrite = () => {
     if (++writes === failWrite) throw new Error("Synthetic write failure");
