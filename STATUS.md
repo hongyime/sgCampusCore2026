@@ -1,3 +1,9 @@
+## Maintenance 2026-09-14 — YAML dependency patch
+
+The lockfile upgrades the existing development-only `js-yaml` dependency from 4.3.1 to 4.3.2 for GHSA-2883-xcg3-v3hh. The upstream fix bounds work when parsing repeated empty YAML merge sources. This dependency is used by ESLint; no new package, application code or deployment configuration is added. This patch does not establish Vercel CPU savings or quota headroom.
+
+Validation: all 123 existing tests, lint, the production build, type checking and all three environment/promo/codegen boundary checks pass locally. The resolved tree reports zero known vulnerabilities in npm audit. Local checks use public synthetic configuration. Preserve the existing Convex main backend and all retained data during release; full-history aggregation and the Supabase migration remain open.
+
 ## Maintenance 2026-09-14 — public ticket reads
 
 The public ticket list returns only the nine fields used by dashboard cards, with an explicit return validator. Reporter identifiers, storage references, moderation details and future internal fields stay in the stored records. Filtering by open/resolved uses the existing status index and preserves newest-first ordering and the 50-ticket cap. Egress timing lookups remain limited to the returned tickets; a recorded zero timestamp is preserved.
