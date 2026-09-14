@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { metricFields } from "./lib/metricValues";
 
 // CampusCore data model (tech_design.md §2).
 //
@@ -28,10 +29,7 @@ export default defineSchema({
     // by the first-write "Safety" rule. Never settable by a client mutation.
     priority_tier: v.union(v.literal(1), v.literal(2)),
 
-    triage_status: v.union(
-      v.literal("awaiting_input"),
-      v.literal("locked"),
-    ),
+    triage_status: v.union(v.literal("awaiting_input"), v.literal("locked")),
 
     // Timestamp of the FIRST category write (not ticket creation). The 15s
     // correction window is measured from here (tech_design §3.4).
@@ -136,6 +134,36 @@ export default defineSchema({
     complete: v.boolean(),
     enabled: v.boolean(),
     total: v.number(),
+  }).index("by_name", ["name"]),
+
+  // Derived full-history metrics. Original ticket/queue fields remain intact.
+  metrics_receipts: defineTable({
+    ticket_id: v.id("tickets"),
+    shard: v.number(),
+    location: v.string(),
+    open: v.number(),
+    ...metricFields,
+  }).index("by_ticket", ["ticket_id"]),
+  metrics_totals: defineTable({
+    shard: v.number(),
+    revision: v.number(),
+    ...metricFields,
+  }).index("by_shard", ["shard"]),
+  metrics_locations: defineTable({ location: v.string() }).index(
+    "by_location",
+    ["location"],
+  ),
+  metrics_location_totals: defineTable({
+    location: v.string(),
+    shard: v.number(),
+    total: v.number(),
+    open: v.number(),
+  }).index("by_location_shard", ["location", "shard"]),
+  metrics_control: defineTable({
+    name: v.literal("v1"),
+    cursor: v.union(v.string(), v.null()),
+    complete: v.boolean(),
+    enabled: v.boolean(),
   }).index("by_name", ["name"]),
 
   // Telegram deep-link pairing tokens (tech_design §1). 3-minute TTL,

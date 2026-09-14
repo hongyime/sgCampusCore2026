@@ -7,6 +7,8 @@ import {
   leaderboardControl,
   rankedVolunteers,
 } from "./lib/leaderboard";
+import { refreshTicketMetrics } from "./lib/metrics";
+import { dashboardMetricResult, readDashboardMetrics } from "./lib/metricReads";
 
 // TASK-31: Public dashboard ticket list
 export const getTickets = query({
@@ -67,53 +69,10 @@ export const getTickets = query({
 
 // TASK-32 & 33: Metrics & Health breakdown
 export const getMetrics = query({
-  args: {},
-  handler: async (ctx) => {
-    const tickets = await ctx.db.query("tickets").collect();
-
-    let totalTTR = 0;
-    let resolvedCount = 0;
-    let totalSBL = 0;
-    let sblCount = 0;
-
-    const locationBreakdown: Record<string, { total: number; open: number }> =
-      {};
-
-    for (const t of tickets) {
-      // Breakdown by location
-      const loc = t.location_entity || "Unknown";
-      if (!locationBreakdown[loc]) {
-        locationBreakdown[loc] = { total: 0, open: 0 };
-      }
-      locationBreakdown[loc].total++;
-      if (t.status === "open") locationBreakdown[loc].open++;
-
-      // TTR computation
-      if (t.status === "resolved" && t.resolved_at) {
-        totalTTR += t.resolved_at - t.created_at;
-        resolvedCount++;
-      }
-
-      // SBL computation
-      const egress = await ctx.db
-        .query("telegram_egress_queue")
-        .withIndex("by_ticket", (q) => q.eq("ticket_id", t._id))
-        .unique();
-
-      if (egress && egress.egress_cleared_at) {
-        totalSBL += egress.egress_cleared_at - t.created_at;
-        sblCount++;
-      }
-    }
-
-    return {
-      avgTtrMs: resolvedCount > 0 ? totalTTR / resolvedCount : 0,
-      avgSblMs: sblCount > 0 ? totalSBL / sblCount : 0,
-      resolvedCount,
-      totalTickets: tickets.length,
-      locationBreakdown,
-    };
-  },
+  args: { locationCursor: v.optional(v.union(v.string(), v.null())) },
+  returns: dashboardMetricResult,
+  handler: (ctx, args) =>
+    readDashboardMetrics(ctx, args.locationCursor ?? null),
 });
 
 // TASK-34: Volunteer resolution workflow
@@ -151,6 +110,7 @@ export const resolveTicket = mutation({
       resolved_at: resolvedAt,
     });
     await countResolution(ctx, (await ctx.db.get(resolutionId))!);
+    await refreshTicketMetrics(ctx, args.ticketId);
   },
 });
 

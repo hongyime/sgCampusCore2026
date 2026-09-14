@@ -1,5 +1,6 @@
 import { internalMutation } from "./_generated/server";
 import { resolvePriorityTier } from "./lib/severityFloor";
+import { refreshTicketMetrics } from "./lib/metrics";
 
 // Burst test helper for Egress Queue (AGENTS.md requirement)
 export const seed50Tickets = internalMutation({
@@ -42,6 +43,7 @@ export const seed50Tickets = internalMutation({
         created_at: now,
         egress_cleared_at: null,
       });
+      await refreshTicketMetrics(ctx, ticketId);
     }
     
     console.log(`[BurstTest] Seeded ${emergencyCount} tier-1 and ${routineCount} tier-2 tickets.`);

@@ -1,6 +1,7 @@
 import { internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import { refreshTicketMetrics } from "./lib/metrics";
 
 // TASK-22: claim_batch
 export const claimBatch = internalMutation({
@@ -50,6 +51,7 @@ export const finalizeBatch = internalMutation({
           status: "sent",
           egress_cleared_at: now,
         });
+        await refreshTicketMetrics(ctx, row.ticket_id);
       } else {
         const nextRetry = row.retry_count + 1;
         if (nextRetry >= 3) {

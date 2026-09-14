@@ -77,6 +77,8 @@ function context(identity = null, acknowledgedAt = null) {
         priority_tier: 1,
         headline: "Synthetic report",
         location_entity: "Test location",
+        created_at: 0,
+        resolved_at: null,
       },
     ],
     [
@@ -115,17 +117,29 @@ function context(identity = null, acknowledgedAt = null) {
       },
       query: (table) => {
         access.push("query");
-        if (["leaderboard_control", "leaderboard_totals"].includes(table)) {
+        if (
+          [
+            "leaderboard_control",
+            "leaderboard_totals",
+            "telegram_egress_queue",
+            "metrics_receipts",
+            "metrics_totals",
+            "metrics_locations",
+            "metrics_location_totals",
+          ].includes(table)
+        ) {
           let matches = [...rows.values()].filter(
             (row) => tables.get(row._id) === table,
           );
           return {
             withIndex(_name, predicate) {
-              predicate({
+              const index = {
                 eq(field, value) {
                   matches = matches.filter((row) => row[field] === value);
+                  return index;
                 },
-              });
+              };
+              predicate(index);
               return this;
             },
             async unique() {
