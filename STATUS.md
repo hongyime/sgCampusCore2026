@@ -1,3 +1,11 @@
+## Maintenance 2026-09-14 — public ticket reads
+
+The public ticket list returns only the nine fields used by dashboard cards, with an explicit return validator. Reporter identifiers, storage references, moderation details and future internal fields stay in the stored records. Filtering by open/resolved uses the existing status index and preserves newest-first ordering and the 50-ticket cap. Egress timing lookups remain limited to the returned tickets; a recorded zero timestamp is preserved.
+
+Validation: 123 synthetic unit/property tests, the production build, lint, type checking and all three environment/promo/codegen boundary checks pass locally. Six new cases exercise the registered query handler, including private-field exclusion, both status filters with 6,000 unrelated newer tickets, ordering, empty results and timing values. The old handler fails four of those cases. The npm test command quotes its globs so Node includes root-level test files on Linux as well as Windows; the previous unquoted command ran only 72 cases in hosted CI. No live records or outbound messages are used for these tests.
+
+The existing main backend was verified as energetic-bird-10, project 2503026, reference preview/main, with no expiry. Release through the existing deployment command, which reuses that branch's database; never pass --preview-create for main. The schema, ingestion, queue, moderation and emergency thresholds have no changes in this patch. Full-history metrics and leaderboard reads still need lossless aggregation work; this ticket-list change does not establish monthly quota headroom or complete the Supabase migration.
+
 ## Maintenance 2026-09-13 — backend authorization
 
 School membership now gates ticket resolution in Convex; the resolver comes from the signed identity, including requests from older cached clients. Emergency reads and acknowledgements require an allowlisted staff administrator. An explicitly unverified email is rejected; missing optional verification claims retain the existing reliance on Clerk's configured institutional verification policy. Repeated acknowledgements preserve their original timestamp.
@@ -6,7 +14,7 @@ Anonymous pages skip emergency subscriptions, and action failures/pending state 
 
 The repository CodeQL workflow now covers Actions as well as JavaScript/TypeScript. GitHub default setup is disabled to resolve its rejection of advanced-workflow analysis uploads; scanning continues through the checked repository workflow.
 
-Validation uses actual registered handlers with synthetic database/auth services, plus the existing unit/property and build boundaries. No live tickets or outbound messages are used. Full authenticated SSO, public ticket-field minimization, scalable metrics/leaderboard queries, alarm asset/styling review and the eventual Supabase migration remain follow-up work. Queue, ingestion, moderation and emergency thresholds retain their source.
+Validation uses actual registered handlers with synthetic database/auth services, plus the existing unit/property and build boundaries. No live tickets or outbound messages are used. Full authenticated SSO, scalable metrics/leaderboard queries, alarm asset/styling review and the eventual Supabase migration remain follow-up work. Public ticket-field minimization is covered by the 14 September patch above. Queue, ingestion, moderation and emergency thresholds retain their source.
 
 # STATUS — CampusCore
 
