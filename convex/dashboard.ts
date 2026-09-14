@@ -1,20 +1,34 @@
 import { query, mutation } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import { isSchoolMemberEmail } from "../config/school";
+import { ticketCategory } from "./schema";
 
 // TASK-31: Public dashboard ticket list
 export const getTickets = query({
   args: {
     status: v.optional(v.union(v.literal("open"), v.literal("resolved"))),
   },
+  returns: v.array(
+    v.object({
+      _id: v.id("tickets"),
+      status: v.union(v.literal("open"), v.literal("resolved")),
+      priority_tier: v.union(v.literal(1), v.literal(2)),
+      headline: v.string(),
+      description: v.string(),
+      location_entity: v.string(),
+      category: v.union(ticketCategory, v.null()),
+      created_at: v.number(),
+      egress_cleared_at: v.union(v.number(), v.null()),
+    }),
+  ),
   handler: async (ctx, args) => {
-    let ticketsQuery = ctx.db.query("tickets").order("desc");
-
-    if (args.status) {
-      ticketsQuery = ticketsQuery.filter((q) =>
-        q.eq(q.field("status"), args.status),
-      );
-    }
+    const status = args.status;
+    const ticketsQuery = status
+      ? ctx.db
+          .query("tickets")
+          .withIndex("by_status", (q) => q.eq("status", status))
+          .order("desc")
+      : ctx.db.query("tickets").order("desc");
 
     const tickets = await ticketsQuery.take(50);
 
@@ -27,8 +41,17 @@ export const getTickets = query({
           .unique();
 
         return {
-          ...t,
-          egress_cleared_at: egress?.egress_cleared_at || null,
+          // Public cards need these fields only. Retain reporter, storage,
+          // moderation and future operational metadata in the database.
+          _id: t._id,
+          status: t.status,
+          priority_tier: t.priority_tier,
+          headline: t.headline,
+          description: t.description,
+          location_entity: t.location_entity,
+          category: t.category,
+          created_at: t.created_at,
+          egress_cleared_at: egress?.egress_cleared_at ?? null,
         };
       }),
     );
