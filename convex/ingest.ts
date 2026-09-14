@@ -3,6 +3,7 @@ import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { checkVerification } from "./lib/verification";
 import { resolvePriorityTier } from "./lib/severityFloor";
+import { refreshTicketMetrics } from "./lib/metrics";
 
 // Report ingestion (tech_design.md §3, §5, §7).
 //
@@ -65,14 +66,14 @@ export const createTicket = internalMutation({
       egress_cleared_at: null,
     });
 
+    await refreshTicketMetrics(ctx, ticketId);
+
     // 4. Emergency SLA: per-ticket one-off timer (tech_design §7). Never a
     // cron — Convex cron granularity (1 min) would widen the 60s SLA.
     if (priority_tier === 1) {
-      await ctx.scheduler.runAfter(
-        60_000,
-        internal.sla.checkEmergencySla,
-        { ticket_id: ticketId },
-      );
+      await ctx.scheduler.runAfter(60_000, internal.sla.checkEmergencySla, {
+        ticket_id: ticketId,
+      });
     }
 
     return { ok: true as const, ticketId, priority_tier };

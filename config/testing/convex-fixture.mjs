@@ -64,6 +64,7 @@ export function memoryDatabase(seed = {}) {
     by_shard: ["shard"],
     by_location: ["location"],
     by_location_shard: ["location", "shard"],
+    by_telegram_user: ["telegram_user_id"],
   };
   const beforeWrite = () => {
     if (++writes === failWrite) throw new Error("Synthetic write failure");
