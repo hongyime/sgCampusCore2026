@@ -23,6 +23,7 @@ type DashboardTicket = {
 };
 
 type LocationStats = {
+  location: string;
   total: number;
   open: number;
 };
@@ -74,17 +75,18 @@ function DashboardContent() {
   const { isAuthenticated } = useConvexAuth();
   const [resolvingId, setResolvingId] = useState<Id<"tickets"> | null>(null);
   const [resolveError, setResolveError] = useState<string | null>(null);
+  const [locationPages, setLocationPages] = useState<(string | null)[]>([null]);
 
   const ticketsQuery = useQuery(api.dashboard.getTickets, { status: filter });
-  const metrics = useQuery(api.dashboard.getMetrics);
+  const metrics = useQuery(api.dashboard.getMetrics, {
+    locationCursor: locationPages.at(-1) ?? null,
+  });
   const leaderboardQuery = useQuery(api.dashboard.getLeaderboard);
   const resolveTicket = useMutation(api.dashboard.resolveTicket);
 
   const tickets = (ticketsQuery ?? []) as DashboardTicket[];
-  const locationBreakdown = (metrics?.locationBreakdown ?? {}) as Record<
-    string,
-    LocationStats
-  >;
+  const locations = (metrics?.locations ?? []) as LocationStats[];
+  const locationPage = metrics?.locationPageReset ? 1 : locationPages.length;
   const leaderboard = (leaderboardQuery ?? []) as LeaderboardEntry[];
 
   async function handleResolve(ticketId: Id<"tickets">) {
@@ -132,13 +134,13 @@ function DashboardContent() {
             </div>
           </section>
 
-          <section className="metric-card">
+          <section className="metric-card" aria-busy={!metrics}>
             <p className="eyebrow">Campus health</p>
-            {Object.entries(locationBreakdown).length > 0 ? (
-              <div className="stack">
-                {Object.entries(locationBreakdown).map(([location, stats]) => (
-                  <div className="split-row" key={location}>
-                    <span>{location}</span>
+            {locations.length > 0 ? (
+              <div className="stack location-list">
+                {locations.map((stats) => (
+                  <div className="split-row" key={stats.location}>
+                    <span>{stats.location}</span>
                     <strong>
                       {stats.open} open / {stats.total} total
                     </strong>
@@ -146,8 +148,46 @@ function DashboardContent() {
                 ))}
               </div>
             ) : (
-              <p className="muted">No location data yet.</p>
+              <p className="muted" aria-live="polite">
+                {!metrics
+                  ? "Loading locations..."
+                  : "No location data on this page."}
+              </p>
             )}
+            {locationPage > 1 || metrics?.nextLocationCursor ? (
+              <nav
+                className="filter-group location-pages"
+                aria-label="Location pages"
+              >
+                <button
+                  className="filter"
+                  type="button"
+                  disabled={!metrics || locationPage === 1}
+                  onClick={() =>
+                    setLocationPages((pages) => pages.slice(0, -1))
+                  }
+                >
+                  Previous
+                </button>
+                <span aria-live="polite">Page {locationPage}</span>
+                <button
+                  className="filter"
+                  type="button"
+                  disabled={!metrics?.nextLocationCursor}
+                  onClick={() => {
+                    const next = metrics?.nextLocationCursor;
+                    if (next)
+                      setLocationPages((pages) =>
+                        metrics.locationPageReset
+                          ? [null, next]
+                          : [...pages, next],
+                      );
+                  }}
+                >
+                  Next
+                </button>
+              </nav>
+            ) : null}
           </section>
 
           <section className="metric-card">

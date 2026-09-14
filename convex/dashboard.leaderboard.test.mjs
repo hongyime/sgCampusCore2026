@@ -28,6 +28,9 @@ function fixture(source = []) {
         _creationTime: 0,
         status: "open",
         priority_tier: 1,
+        created_at: 0,
+        resolved_at: null,
+        location_entity: "Test location",
       },
     ],
   });

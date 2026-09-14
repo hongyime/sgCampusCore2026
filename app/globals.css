@@ -242,6 +242,27 @@ a {
   color: var(--text);
 }
 
+.location-list .split-row {
+  align-items: flex-start;
+}
+
+.location-list .split-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.location-list .split-row > strong {
+  flex-shrink: 0;
+}
+
+.location-pages {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 100%;
+  margin-top: 16px;
+}
+
 .ticket-list {
   margin-top: 24px;
 }

@@ -57,6 +57,13 @@ export const inspect = internalQuery({
   }),
 });
 
+// Idempotent single-ticket reconciliation, also used to validate concurrent
+// writes without invoking external providers or synthetic emergency timers.
+export const refreshTicket = internalMutation({
+  args: { ticketId: v.id("tickets") },
+  handler: (ctx, args) => refreshTicketMetrics(ctx, args.ticketId),
+});
+
 // Keep original fields available for lossless source/parity verification.
 // These pages are private; operator reports must contain totals, not raw PII.
 export const verificationPage = internalQuery({
