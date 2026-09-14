@@ -66,7 +66,9 @@ export async function refreshTicketMetrics(
   ticketId: Id<"tickets">,
 ) {
   const ticket = await ctx.db.get(ticketId);
-  if (!ticket) throw new ConvexError("Metric source ticket is missing.");
+  // An orphan queue row is not part of ticket-derived metrics. Preserve the
+  // existing completion behavior; direct source deletion requires parity review.
+  if (!ticket) return false;
   const egress = await ctx.db
     .query("telegram_egress_queue")
     .withIndex("by_ticket", (q) => q.eq("ticket_id", ticketId))

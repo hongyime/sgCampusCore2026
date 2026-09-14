@@ -10,7 +10,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const require = createRequire(import.meta.url);
 
 // Real registered handlers; only database/auth services are synthetic.
-export function loadConvex(module) {
+export function loadConvex(module, globals = {}) {
   const cache = new Map();
   function load(path) {
     const file = [path, `${path}.ts`, `${path}.js`].find(existsSync);
@@ -35,6 +35,7 @@ export function loadConvex(module) {
             ? load(resolve(dirname(file), name))
             : require(name),
         process: { env: { CAMPUSCORE_SCHOOL_CODE: "smu" } },
+        ...globals,
       },
       { filename: file },
     );
@@ -65,6 +66,7 @@ export function memoryDatabase(seed = {}) {
     by_location: ["location"],
     by_location_shard: ["location", "shard"],
     by_telegram_user: ["telegram_user_id"],
+    by_status_priority_created: ["status", "priority_tier", "created_at"],
   };
   const beforeWrite = () => {
     if (++writes === failWrite) throw new Error("Synthetic write failure");
