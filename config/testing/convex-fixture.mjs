@@ -125,6 +125,11 @@ export function memoryDatabase(seed = {}) {
           reads.push({ table, operation: "unique", count: values.length });
           return structuredClone(values[0] ?? null);
         },
+        async first() {
+          const values = select();
+          reads.push({ table, operation: "first", count: Math.min(values.length, 1) });
+          return structuredClone(values[0] ?? null);
+        },
         async take(count) {
           const values = select().slice(0, count);
           reads.push({
