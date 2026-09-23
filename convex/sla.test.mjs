@@ -1,3 +1,4 @@
+// ci-verify: trigger build-check workflow to confirm new tests pass in CI
 // Unit tests for the emergency SLA monitor (tech_design.md §7).
 //
 // Tests the checkEmergencySla internal mutation which:
