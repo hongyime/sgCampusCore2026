@@ -1,128 +1,177 @@
-# AGENTS.md — CampusCore Agent Configuration
+---
+description: Central configuration and documentation for all AI coding agents across repositories
+---
 
-## Project Context
+# AI Agents Configuration
 
-CampusCore is a decentralized campus issue-reporting system for SMU
-(Telegram bot ingestion + Next.js dashboard + Convex backend). Full
-product intent is in `docs/prd.md`; full architecture is in
-`docs/tech_design.md`. Read both before generating any code that touches
-auth, the moderation pipeline, or the egress queue — those three areas
-have specific, deliberate constraints that are easy to "simplify" away by
-accident.
+This file defines how AI coding agents (Cursor, Antigravity, Claude Code, GitHub Copilot, etc.) should behave across all repositories in this workspace.
 
-## Core Build Philosophy
+## Cross-Session State (Read This First)
 
-- Treat yourself as a fast implementation partner, not an infallible
-  builder. Every output is a draft until a human reviews it.
-- Control the blast radius of every change. Prefer several small,
-  reviewable diffs over one large one.
-- Context must be curated, not maximized — work from the specific files
-  relevant to the task, not the whole repo, and say so if you're unsure
-  what's in scope.
-- If something looks wrong — suspicious behavior, an assumption you can't
-  verify, a platform limit you're not certain of — stop and ask rather
-  than guessing forward.
+Before doing anything else, read `.agents/STATE.md` if it exists. It is the
+handover from whoever worked here last, possibly from a different tool or
+machine.
 
-## Access & Permission Boundaries
+This workspace is worked on by multiple agents: Gemini CLI, Antigravity, Mistral
+CLI, Kiro, Codex, Pi, Hermes, opencode, Claude Code, Cursor, and others. Sessions
+can end abruptly when a free-tier limit is hit. No harness can read every other
+harness's private session store, so durable state lives in plain files that all
+of them can read.
 
-- **Never write to `priority_tier` from any client-facing mutation.**
-  This field is server-owned exclusively by the ingestion-time lexicon
-  check (`tech_design.md` §3). A category button tap may write
-  `category`; it must never be able to set or change `priority_tier`
-  directly.
-- **Never implement a human image-review queue.** The moderation pipeline
-  is hash-match → ONNX binary classifier → auto-delete/auto-pass, with no
-  `pending_review` state and no UI for a person to view a flagged image.
-  If a feature request implies adding one, flag it instead of building
-  it.
-- **Never wire the legal-escalation endpoint to a real address.** It must
-  remain a stub that logs the payload. Do not "complete" this integration
-  without an explicit, separate, human-approved task for it.
+The state directory is:
 
-## Workspace & Scope Limits
+```text
+.agents/
+  STATE.md      current task, progress, next steps
+  JOURNAL.md    append-only decisions and rationale
+  handoffs/     detailed handoff documents
+```
 
-- Keep the webhook ingestion handler, the egress queue worker, and the
-  moderation pipeline in separate, independently reviewable modules. They
-  have different failure domains and different platform constraints —
-  don't let one diff touch more than one of them unless the task
-  explicitly requires it.
-- Large files hide coupling. If a file is growing past a few hundred
-  lines and accumulating unrelated responsibilities, split it before
-  adding more to it rather than after.
-- Don't expand scope to "while I'm in here" fix unrelated things. Flag
-  them instead.
+`.agents/` is committed deliberately so state reaches the other machines. Never
+write secrets or personal details there. These files are permanent and
+world-readable in public repositories.
 
-## Secrets & Sensitive Data Rules
+Treat `.agents/` as shared project state, not personal scratch space. In team
+repos, write only what another teammate or agent needs to resume the work:
+current task, decisions, blockers, linked issues or PRs, and safe next steps.
+Do not write private notes, credentials, customer data, local machine paths that
+should stay private, or anything that would be unsafe in a public repository.
 
-- No Clerk secret keys, Telegram bot tokens, Cloudflare API tokens, or
-  Resend API keys in source code, ever. Use Convex environment variables.
-- Treat the verified `@smu.edu.sg` email inside a JWT as PII. Don't log
-  full JWT payloads, even though they're signed rather than encrypted.
-- Don't log raw image bytes or per-user moderation confidence scores
-  outside the moderation pipeline's own internal audit path.
+Your obligations:
 
-## Approval Checkpoints
+1. On start, read `.agents/STATE.md` if it exists.
+2. As you work, update `.agents/STATE.md` after each meaningful step.
+3. For durable decisions, append one dated line to `.agents/JOURNAL.md`.
+4. Before a long or risky stretch, write a handoff in `.agents/handoffs/`.
 
-Changes to any of the following require explicit human sign-off before
-merge — these constitute the life-safety path and have already been
-deliberately tuned against specific platform limits:
+Keep `STATE.md` short and current. Put durable decisions in `JOURNAL.md`. Put
+detailed resume notes in timestamped files under `.agents/handoffs/` so multiple
+people do not overwrite one another.
 
-- The 60-second emergency SLA threshold.
-- The reaper TTL or `retry_count` dead-letter threshold.
-- The hazard lexicon word list.
-- The NSFW/violence confidence cutoff.
-- Any new third-party dependency beyond the current stack (Convex, Clerk,
-  Next.js/Vercel, Telegram Bot API, Cloudflare, ONNX Runtime WASM,
-  Resend) — check free-tier cost implications first.
+Memory tools such as cognee or cavemem are optional local aids. Trust
+`.agents/STATE.md` and `git log` over an empty memory-tool result.
 
-## Validation & Review
+## Agent Types and Roles
 
-- **Don't cite a platform limit without checking it against that
-  platform's own current documentation.** Convex's Action timeout,
-  Vercel's bundle/runtime limits, and Telegram's rate limits are three
-  different numbers from three different products — verify against the
-  correct one every time, don't reuse a number from a different part of
-  the stack.
-- **Test before commit.** Any change to the queue, the reaper, or a
-  moderation threshold needs a manual run against a simulated burst
-  (e.g. 50+ simultaneous tickets) before merge, not just a unit test on
-  the happy path.
-- **Don't commit a pattern you can't explain in plain language.** If you
-  generate a concurrency primitive or a distributed-systems pattern,
-  name it correctly (e.g. "claim-and-lease," not "Two-Phase Commit"
-  unless it actually is) and be able to state, in one sentence, what
-  failure mode it prevents.
+### 1. Primary Coding Agent (Cursor/Claude Code)
+**Purpose**: Main development assistant for code changes
+**Capabilities**: Full codebase access, file editing, terminal commands
+**Behavior**: Follows all conventions in this file
 
-## Trusted Tools & Integration
+### 2. Review Agent (GitHub PR Review)
+**Purpose**: Automated code review on pull requests
+**Capabilities**: Read-only access to PR changes
+**Behavior**: Strict adherence to coding standards
 
-- **Convex** is the source of truth for ticket state, the queue, and
-  scheduling. Use `ctx.scheduler.runAfter` for any per-ticket timer —
-  never a periodic cron for anything with a sub-minute SLA requirement.
-- **Clerk** auth is restricted to `@smu.edu.sg` at the dashboard level,
-  not just in application code.
-- **Cloudflare** CSAM scanning only works if the relevant upload endpoint
-  is genuinely orange-clouded (DNS-proxied through Cloudflare). Confirm
-  this in the dashboard before assuming the hash-match layer is active.
-- **ONNX Runtime (WASM)** is the only approved moderation runtime. Do not
-  substitute `tfjs-node` or any other native-binary ML runtime — it does
-  not reliably deploy within Vercel's serverless bundle constraints.
-- **Resend** is for emergency escalation email only, on the free tier
-  (3,000/month). Don't assume unlimited volume; flag it if a feature
-  would meaningfully increase email frequency.
+### 3. Documentation Agent
+**Purpose**: Maintains and updates documentation
+**Capabilities**: Can modify markdown files
+**Behavior**: Never creates new docs without explicit request
 
-## Known Limitations — Document, Don't "Fix" Silently
+### 4. Security Agent (TruffleHog, CodeQL)
+**Purpose**: Security scanning and vulnerability detection
+**Capabilities**: Full codebase scan
+**Behavior**: Blocks PRs on security issues
 
-If you encounter one of these in the course of building, leave it as-is
-and reference this section rather than attempting to close it
-unilaterally:
+## Universal Rules (Apply to All Agents)
 
-- **Account selling.** A verified student periodically re-authenticating
-  on a buyer's behalf can defeat the 30-day SSO re-verification. This is
-  an accepted social-engineering risk with no deterministic fix.
-- **Email escalation is not a guaranteed active interrupt.** It does not
-  bypass Do Not Disturb or silent mode. Don't write user-facing copy that
-  implies it does.
-- **The hazard lexicon is narrow and English-only** outside of the
-  structured "Safety" category button, which is trusted independently as
-  a first-write signal. Don't expand this into a general NLP hazard
-  classifier without a new design review.
+### 1. File Operations
+- **NEVER** create new markdown files without explicit user request
+- **ALWAYS** update existing documentation when possible
+- **NEVER** delete files without confirmation
+- **ALWAYS** preserve file history and git history
+
+### 2. Code Style
+- Follow language-specific conventions (see skill files)
+- Use consistent naming patterns
+- Keep functions small and focused
+- Add type hints for Python, TypeScript interfaces for JS
+
+### 3. Git Conventions
+- Commit messages: `type: description`
+- Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `style`
+- Keep commits atomic and focused
+- Never force push to main branches
+
+### 4. Communication
+- Be concise and direct
+- Explain complex changes briefly
+- Admit uncertainty when present
+- Ask for clarification when requirements are ambiguous
+
+## Repository-Specific Overrides
+
+### source-repo-code (Template/Source)
+- **Purpose**: Source of truth for shared configurations
+- **Special Rules**: Changes here should be synced to all repos
+
+## Skill System
+
+Do not assume project-level skills are present in target repositories. The
+current sync intentionally removes `skills/`, `skills-lock.json`, and `docs/`
+from target repos, and `.claude/` remains local-only because it can contain
+session databases and credentials.
+
+If a harness has local skills installed, it may use them, but shared repo
+instructions must live in `AGENTS.md` and shared handoff state must live under
+`.agents/`.
+
+### MCP Configuration
+
+MCP support varies by harness. Use local MCP configuration if present, but do
+not assume one shared MCP config is read by every agent.
+
+## Syncing Strategy
+
+### Source of Truth
+- **Primary**: sourcerepo 仓库作为唯一真源（Skills、MCP、通用配置、仓库设置）
+- **Secondary**: 目标仓库保留仓库特定覆盖（需在 sync 后自行维护）
+
+### Sync Workflows
+- **仓库设置与通用配置**：[`sync-repo-settings.yml`](<kfile name="sync-repo-settings.yml" path=".github/workflows/sync-repo-settings.yml">.github/workflows/sync-repo-settings.yml</kfile>) 负责传播 GitHub Actions、Dependabot、labels、`AGENTS.md` 等
+
+### Sync Process
+1. 在 sourcerepo 中修改通用配置
+2. 推送到 `main` 分支自动触发相应 workflow
+3. workflow 会遍历所有非 archive/fork 仓库，复制变更并提交/开 PR
+4. 定时任务每日/每日执行，覆盖未来新仓库
+
+### New Repository Setup
+当创建新仓库时：
+1. 将 sourcerepo 中的配置同步过去（由定时任务或手动触发完成）
+2. 如需仓库特定覆盖，同步后手动维护
+3. Read `AGENTS.md`, then read `.agents/STATE.md` if present
+
+## Maintenance
+
+### Quarterly Reviews
+- Review and update skill files
+- Check for outdated action versions
+- Verify agent behavior consistency
+- Update this configuration as needed
+
+### Automated Monitoring
+- Use Dependabot for dependency updates
+- Use TruffleHog for secret scanning
+- Use custom scripts to detect outdated GitHub Actions
+
+## Troubleshooting
+
+### Agent Not Following Conventions
+1. 检查仓库特定覆盖在 AGENTS.md 中
+2. 检查 `.agents/STATE.md` 中是否有最新任务上下文
+3. 审阅近期约定变更
+4. 从源重新同步配置
+
+### Sync Failures
+1. 使用相应 workflow 的 `workflow_dispatch` 手动触发以观察日志
+2. 检查目标仓库中的 git 冲突
+3. 验证文件权限
+4. 查看同步日志中的具体错误
+
+## References
+
+- [GitHub Skills Documentation](https://docs.github.com/en/contributing/collaborating-with-github-docs/using-skills)
+- [Cursor AI Documentation](https://docs.cursor.com/)
+- [Claude Code Documentation](https://docs.anthropic.com/claude/code)
+- [Dependabot Configuration](https://docs.github.com/en/code-security/dependabot)
