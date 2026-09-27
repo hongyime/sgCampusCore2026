@@ -13,7 +13,7 @@
       the project-level preview defaults, and mirrored into
       `.env.convex.local`. Escalation module now has full config.
 - [x] **`RESEND_ESCALATION_TO` (Convex_Env)** — RESOLVED 2026-07-06. Set
-      to `hello@hong-yi.me` on both `elated-dogfish-303` and the
+      to `<private-contact>` on both `elated-dogfish-303` and the
       project-level preview defaults; mirrored into `.env.convex.local`.
       Note: the recipient sits on the `hong-yi.me` apex while the
       verified Resend sender is the `sgcampuscore.hong-yi.me`
@@ -58,7 +58,7 @@
       `elated-dogfish-303` and the project-level preview defaults. Not
       urgent.
 - [ ] **`hong-yi.me` apex not verified as a Resend sender** — Escalation
-      currently `To:`-addresses `hello@hong-yi.me`, which works fine
+      currently `To:`-addresses `<private-contact>`, which works fine
       (Resend does not validate the recipient domain). Only the
       `sgcampuscore.hong-yi.me` subdomain is a verified `From:` sender.
       If a future flow ever needs to `From:` the apex, verify the apex
