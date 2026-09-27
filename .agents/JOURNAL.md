@@ -19,3 +19,5 @@
   not merged — code was already pushed straight to `main` per repo
   convention) that the real GitHub Actions Build job is green with all
   four new suites in place.
+
+- 2026-09-27: Prepared reviewed portability/privacy changes on the current default branch with maintenance-only file selection and preserved original workspace state.

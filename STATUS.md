@@ -55,7 +55,7 @@ patched via an npm `overrides` entry (in flight at doc-write time).
   project-level preview defaults (via PAT because preview deploy keys
   can't write env): `RESEND_API_KEY` (rotated value),
   `RESEND_FROM_EMAIL=alerts@sgcampuscore.hong-yi.me`,
-  `RESEND_ESCALATION_TO=hello@hong-yi.me`.
+  `RESEND_ESCALATION_TO=<private-contact>`.
 - Mirrored into `.env.convex.local` on both the UNC repo and
   Local_Mirror. `.env.local` untouched — Resend is Convex-only.
 - Escalation module (`convex/lib/resend.ts`) now has full config; the
@@ -220,7 +220,7 @@ or building. See DEPLOYMENT.md for the full runbook.
 - Verified `.env.local` and `.env.convex.local` populated per the
   Session-3 env split (Nextjs_Env vs Convex_Env boundary).
 - Established the non-UNC Local_Mirror at
-  `C:\Users\bryan\AppData\Local\Temp\opencode\sgCampusCore2026-local`
+  `<user-home>\AppData\Local\Temp\opencode\sgCampusCore2026-local`
   (UNC path causes Convex CLI and Next.js build to fail).
 - Ran `npx convex dev --once` in the mirror. Captured the Convex Preview
   deployment slug `elated-dogfish-303`
