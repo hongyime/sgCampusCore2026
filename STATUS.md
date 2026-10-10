@@ -354,3 +354,5 @@ Unchanged this session:
 
 
 Maintenance deployment continuity: Convex preview deployments normally expire after five days on Free/Starter. Keep the live main database non-expiring while planning the lossless Supabase migration. Feature previews may retain their normal expiry. Avoid deleting/recreating main, and verify its hostname and expiry after future releases. See https://docs.convex.dev/production/multiple-deployments and https://docs.convex.dev/management-api/update-deployment.
+
+Machine-specific values in this document use privacy placeholders.
